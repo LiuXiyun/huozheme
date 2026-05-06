@@ -1,0 +1,8 @@
+<svg width="96" height="96" viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="活着么 logo">
+  <rect x="8" y="8" width="80" height="80" rx="22" fill="#101114"/>
+  <rect x="8" y="8" width="80" height="80" rx="22" stroke="#C7FF4F" stroke-width="5"/>
+  <path d="M48 22V38" stroke="#C7FF4F" stroke-width="8" stroke-linecap="round"/>
+  <path d="M34.2 30.6C27.9 35 24 42.3 24 50.4C24 63.7 34.7 74.4 48 74.4C61.3 74.4 72 63.7 72 50.4C72 42.3 68.1 35 61.8 30.6" stroke="#F5F2E8" stroke-width="7" stroke-linecap="round"/>
+  <path d="M20 53H32L38 42L47 62L55 48L60 53H76" stroke="#54D6D1" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="72" cy="24" r="7" fill="#FF6B57"/>
+</svg>

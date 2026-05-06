@@ -1535,7 +1535,8 @@ function drawShareCanvas(result, template = "classic") {
 
   ctx.fillStyle = "#a7a8aa";
   ctx.font = "700 34px system-ui, sans-serif";
-  ctx.fillText(`${result.persona}精神存活报告`, 72, 104);
+  drawCanvasLogo(ctx, 72, 66, 52);
+  ctx.fillText(`${result.persona}精神存活报告`, 140, 104);
   ctx.textAlign = "right";
   ctx.fillText(`${formatDate(new Date())} #${state.shareId.toUpperCase()}`, w - 72, 104);
   ctx.textAlign = "left";
@@ -1575,6 +1576,49 @@ function drawShareCanvas(result, template = "classic") {
   ctx.textAlign = "left";
 
   return canvas;
+}
+
+function drawCanvasLogo(ctx, x, y, size) {
+  ctx.save();
+  roundRect(ctx, x, y, size, size, size * 0.24);
+  ctx.fillStyle = "#101114";
+  ctx.fill();
+  ctx.lineWidth = Math.max(3, size * 0.055);
+  ctx.strokeStyle = "#c7ff4f";
+  ctx.stroke();
+
+  ctx.strokeStyle = "#c7ff4f";
+  ctx.lineWidth = size * 0.08;
+  ctx.lineCap = "round";
+  ctx.beginPath();
+  ctx.moveTo(x + size * 0.5, y + size * 0.18);
+  ctx.lineTo(x + size * 0.5, y + size * 0.36);
+  ctx.stroke();
+
+  ctx.strokeStyle = "#f5f2e8";
+  ctx.lineWidth = size * 0.075;
+  ctx.beginPath();
+  ctx.arc(x + size * 0.5, y + size * 0.54, size * 0.27, Math.PI * 0.72, Math.PI * 2.28);
+  ctx.stroke();
+
+  ctx.strokeStyle = "#54d6d1";
+  ctx.lineWidth = size * 0.052;
+  ctx.lineJoin = "round";
+  ctx.beginPath();
+  ctx.moveTo(x + size * 0.14, y + size * 0.58);
+  ctx.lineTo(x + size * 0.3, y + size * 0.58);
+  ctx.lineTo(x + size * 0.38, y + size * 0.45);
+  ctx.lineTo(x + size * 0.49, y + size * 0.68);
+  ctx.lineTo(x + size * 0.58, y + size * 0.52);
+  ctx.lineTo(x + size * 0.66, y + size * 0.58);
+  ctx.lineTo(x + size * 0.86, y + size * 0.58);
+  ctx.stroke();
+
+  ctx.fillStyle = "#ff6b57";
+  ctx.beginPath();
+  ctx.arc(x + size * 0.78, y + size * 0.22, size * 0.075, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
 }
 
 function drawXhsRibbon(ctx, color) {

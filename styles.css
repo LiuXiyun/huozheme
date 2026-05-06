@@ -129,6 +129,19 @@ button {
   margin-bottom: 20px;
 }
 
+.brand-logo {
+  width: 32px;
+  height: 32px;
+  flex: 0 0 auto;
+  border-radius: 10px;
+  filter: drop-shadow(0 8px 18px rgba(199, 255, 79, 0.16));
+}
+
+.hero-logo {
+  width: 34px;
+  height: 34px;
+}
+
 .pulse-dot {
   width: 10px;
   height: 10px;
@@ -1728,6 +1741,29 @@ h1 {
   font-weight: 900;
   letter-spacing: 0;
   text-transform: uppercase;
+}
+
+.rail-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.rail-logo {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+}
+
+.rail-brand strong {
+  display: block;
+  font-size: 24px;
+  line-height: 1;
+}
+
+.rail-brand span {
+  display: block;
+  margin-top: 6px;
 }
 
 .desktop-rail h2 {
