@@ -735,6 +735,41 @@ const titles = [
   "今日未掉线，但有划痕",
 ];
 
+const themeBriefs = {
+  worker: {
+    copy: "从睡眠、通勤、会议、余额和下班概率里抽样，适合在午休、下班前和工位群里发。",
+    tags: ["会议浓度", "通勤损耗", "余额心跳"],
+    signals: ["下班幻想升温", "同步一下过敏", "周报反噬预警"],
+    railFeed: ["适合发给同事：看谁今天电量最低", "隐藏结局钩子：年度加班热力图", "分享标题：杭州互联网人今日轻度冒烟"],
+  },
+  student: {
+    copy: "从作息、DDL、考试、宿舍和生活费里抽样，适合在班群、宿舍群和小红书发。",
+    tags: ["DDL 压强", "早八耐受", "生活费电量"],
+    signals: ["早八残影出现", "小组作业气压下降", "手机吞噬时间偏高"],
+    railFeed: ["适合发给舍友：谁还没开始写", "隐藏结局钩子：本学期崩溃课程榜", "分享标题：大学生今日精神电量抽检"],
+  },
+  solo: {
+    copy: "从吃饭、房间、开灯、社交和深夜脑内会议里抽样，保留黑色幽默但不做真实诊断。",
+    tags: ["房间静音", "热饭概率", "人类连接"],
+    signals: ["外卖备注含人量上升", "开灯延迟偏高", "深夜脑内会议预约中"],
+    railFeed: ["适合发给朋友：提醒我吃顿热的", "隐藏结局钩子：独居年度生活热力图", "分享标题：独居人今日低亮度运行"],
+  },
+  freelance: {
+    copy: "从客户消息、现金流、自律和边界感里抽样，适合给同行、甲方朋友和自媒体评论区发。",
+    tags: ["客户扰动", "现金流心跳", "边界感"],
+    signals: ["改稿循环开始发热", "尾款召唤仪式进行中", "自律系统需要重启"],
+    railFeed: ["适合发给同行：今天谁先收款", "隐藏结局钩子：年度客户天气图", "分享标题：自由职业者今日边界抽检"],
+  },
+};
+
+const questionHints = [
+  "选择后自动进入下一题，整套题约 10 秒。",
+  "不用想太久，第一反应最像今天的你。",
+  "题目每天会换，二刷不容易撞同一套。",
+  "分数会叠加今日盐值和答案组合修正。",
+  "最后会生成报告图、回流码和隐藏结局入口。",
+];
+
 const dateKey = formatDateKey(new Date());
 
 const startView = qs("#startView");
@@ -765,6 +800,7 @@ function init() {
   setTopbarStatus("今日题库待生成");
   renderDesktopQr();
   updateRailShare();
+  updateThemeBrief();
   updateSampleTheme();
   updatePremiumState();
   sendEvent("view_start", {
@@ -797,11 +833,13 @@ function init() {
   });
 
   qs("#city").addEventListener("change", () => {
+    updateThemeBrief();
     updateSampleTheme();
     sendEvent("select_city", { city: qs("#city").value });
   });
 
   qs("#mood").addEventListener("change", () => {
+    updateThemeBrief();
     updateSampleTheme();
     sendEvent("select_mood", { action: qs("#mood").value });
   });
@@ -862,11 +900,77 @@ function renderThemeButtons() {
       state.activeTheme = id;
       document.documentElement.style.setProperty("--theme-color", theme.color);
       renderThemeButtons();
+      updateThemeBrief();
       updateSampleTheme();
       sendEvent("select_theme", { theme: id });
     });
     themeGrid.appendChild(button);
   });
+}
+
+function updateThemeBrief() {
+  const theme = themes[state.activeTheme];
+  const content = themeBriefs[state.activeTheme] || themeBriefs.worker;
+  const city = qs("#city")?.value || theme.hotLine;
+  const mood = qs("#mood")?.value || "低电量运行，还在硬撑";
+  setText("#briefTitle", `${city}${theme.label}今日精神巡检`);
+  setText("#briefCopy", `${content.copy} 当前状态：${mood}。`);
+  const briefTags = qs("#briefTags");
+  if (briefTags) {
+    briefTags.innerHTML = content.tags.map((tag) => `<span>${tag}</span>`).join("");
+  }
+  renderDailySignals();
+  renderRailContent();
+}
+
+function renderDailySignals() {
+  const root = qs("#dailySignals");
+  if (!root) return;
+  const theme = themes[state.activeTheme];
+  const content = themeBriefs[state.activeTheme] || themeBriefs.worker;
+  const city = qs("#city")?.value || theme.hotLine;
+  const seed = hash(`${dateKey}:${state.activeTheme}:${city}:signals`);
+  const sample = Number(state.stats.tests || 0);
+  const signals = [
+    { label: "今日高压词", value: pick(content.signals, seed) },
+    { label: "同城样本", value: `${city}已累计 ${sample || "--"} 份` },
+    { label: "适合转发", value: pick(["下班前", "午休后", "群聊安静时", "睡前别太晚"], seed + 7) },
+  ];
+  root.innerHTML = signals
+    .map(
+      (item) => `
+        <div>
+          <span>${item.label}</span>
+          <strong>${item.value}</strong>
+        </div>
+      `,
+    )
+    .join("");
+}
+
+function renderRailContent() {
+  const nowRoot = qs("#railNow");
+  const feedRoot = qs("#railFeed");
+  if (!nowRoot || !feedRoot) return;
+  const theme = themes[state.activeTheme];
+  const content = themeBriefs[state.activeTheme] || themeBriefs.worker;
+  const city = qs("#city")?.value || theme.hotLine;
+  const average = state.stats.average || "--";
+  nowRoot.innerHTML = `
+    <span>当前剧本</span>
+    <strong>${city}${theme.label} / 平均指数 ${average}</strong>
+    <p>${content.copy}</p>
+  `;
+  feedRoot.innerHTML = content.railFeed
+    .map(
+      (line) => `
+        <div>
+          <span>内容钩子</span>
+          <strong>${line}</strong>
+        </div>
+      `,
+    )
+    .join("");
 }
 
 function renderPosterControls() {
@@ -958,6 +1062,8 @@ function renderStats() {
   qs("#sampleNote").textContent =
     state.stats.source === "redis" ? "今日样本 = 冷启动基数 + 真实完成量" : "今日样本使用本地冷启动基数";
   updateSampleTheme();
+  renderDailySignals();
+  renderRailContent();
 }
 
 function showQuiz() {
@@ -1021,6 +1127,8 @@ function renderQuestion() {
   progressBar.style.width = `${((state.index + 1) / state.questions.length) * 100}%`;
   qs("#progressMood").textContent = buildProgressMood();
   questionDimension.textContent = question.dimension;
+  setText("#questionFactor", question.dimension);
+  setText("#questionHint", questionHints[state.index] || questionHints[0]);
   questionTitle.textContent = question.title;
   optionGrid.innerHTML = "";
   answerFeedback.classList.add("hidden");
@@ -1148,6 +1256,9 @@ function calculateResult() {
     revive: pick(profile.theme.revives, seed + 20),
     premiumPeek: buildPremiumPeek(profile, seed),
     diagnosis: buildDiagnosis(score, seed),
+    resultSlices: buildResultSlices(profile, score, tier, seed, state.answers),
+    shareReasons: buildShareReasons(profile, score, tier, seed),
+    challenge: buildChallenge(profile, score, tier, seed),
     shareLine: buildShareLine(score, profile.city, profile.persona, tier),
   };
 }
@@ -1173,6 +1284,7 @@ function renderResult(result) {
   qs("#premiumPeekText").textContent = result.premiumPeek;
   qs("#tomorrowHook").textContent = result.theme.tomorrow;
   renderDiagnosis(result);
+  renderResultExtras(result);
   updateShareCopy();
 }
 
@@ -1188,6 +1300,52 @@ function renderDiagnosis(result) {
       `,
     )
     .join("");
+}
+
+function renderResultExtras(result) {
+  const deepRoot = qs("#resultDeepGrid");
+  if (deepRoot) {
+    deepRoot.innerHTML = result.resultSlices
+      .map(
+        (item) => `
+          <div>
+            <span>${item.label}</span>
+            <strong>${item.value}</strong>
+            <p>${item.copy}</p>
+          </div>
+        `,
+      )
+      .join("");
+  }
+
+  const reasonsRoot = qs("#shareReasons");
+  if (reasonsRoot) {
+    reasonsRoot.innerHTML = `
+      <div class="insight-head">
+        <span>为什么值得发</span>
+        <strong>${result.personaTag}</strong>
+      </div>
+      ${result.shareReasons
+        .map(
+          (item) => `
+            <div class="insight-item">
+              <span>${item.label}</span>
+              <strong>${item.value}</strong>
+            </div>
+          `,
+        )
+        .join("")}
+    `;
+  }
+
+  const challengeRoot = qs("#challengeCard");
+  if (challengeRoot) {
+    challengeRoot.innerHTML = `
+      <span>好友挑战</span>
+      <strong>${result.challenge.title}</strong>
+      <p>${result.challenge.copy}</p>
+    `;
+  }
 }
 
 function updateShareCopy() {
@@ -1641,6 +1799,61 @@ function buildDiagnosis(score, seed) {
     { label: "离线风险", value: `${clamp(103 - score + (seed % 8), 6, 98)}%`, percent: clamp(103 - score + (seed % 8), 6, 98) },
     { label: "复活概率", value: `${clamp(score - 7 + (seed % 18), 4, 96)}%`, percent: clamp(score - 7 + (seed % 18), 4, 96) },
   ];
+}
+
+function buildResultSlices(profile, score, tier, seed, answers) {
+  const weakest = [...answers].sort((a, b) => a.value - b.value)[0];
+  const strongest = [...answers].sort((a, b) => b.value - a.value)[0];
+  const shareHeat = tier === "high" ? "适合炫耀" : tier === "mid" ? "适合自嘲" : "适合求抱团";
+  return [
+    {
+      label: "今日人设",
+      value: buildPersonaTag(profile, tier, seed + 4),
+      copy: `这张标签比单纯分数更适合截图传播，${profile.city}${profile.persona}一眼能代入。`,
+    },
+    {
+      label: "压力来源",
+      value: weakest?.dimension || profile.theme.risk,
+      copy: weakest ? `你在「${weakest.dimension}」这一项损耗最大，报告会优先围绕它吐槽。` : "系统没有发现明显短板，先按轻度波动处理。",
+    },
+    {
+      label: "转发热度",
+      value: shareHeat,
+      copy: strongest ? `最有梗的一项是「${strongest.dimension}」，适合当朋友圈第一句。` : `指数 ${score}/100，适合发出去做今日状态说明。`,
+    },
+  ];
+}
+
+function buildShareReasons(profile, score, tier, seed) {
+  const content = themeBriefs[profile.themeId] || themeBriefs.worker;
+  const reasonByTier = {
+    high: "你今天像同类样本里的反常清醒者，有一点欠发。",
+    mid: "分数不高不低，最像大家愿意接梗的真实状态。",
+    low: "低电量结果更容易引发朋友接话，但文案已避开真实诊断感。",
+  };
+  return [
+    { label: "身份感", value: `${profile.city}${profile.persona}专属口径` },
+    { label: "话题钩子", value: pick(content.signals, seed + 11) },
+    { label: "传播理由", value: reasonByTier[tier] },
+    { label: "回流入口", value: `编号 ${state.shareId.toUpperCase()} 已写入海报二维码` },
+  ];
+}
+
+function buildChallenge(profile, score, tier, seed) {
+  const thresholds = {
+    high: clamp(score - 8, 45, 82),
+    mid: clamp(score + 6, 36, 76),
+    low: clamp(score + 14, 28, 72),
+  };
+  const endings = [
+    "谁更低电量，谁获得今天的免打扰名额。",
+    "谁比你更像真实样本，谁负责把这张图发群里。",
+    "谁能超过这个指数，谁今天拥有提前下线资格。",
+  ];
+  return {
+    title: `让朋友挑战 ${thresholds[tier]}/100`,
+    copy: `${profile.city}${profile.persona}今日局已开。${pick(endings, seed + 17)}`,
+  };
 }
 
 function buildAnswerSignature(answers) {

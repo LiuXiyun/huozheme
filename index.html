@@ -29,6 +29,11 @@
           </div>
           <h1>活着么</h1>
           <p class="tagline">测一下今日精神存活指数，顺手生成一张能发出去的状态报告。</p>
+          <div class="hero-proof-strip" aria-label="玩法亮点">
+            <span>每日题库刷新</span>
+            <span>AI 毒舌报告</span>
+            <span>海报带回流码</span>
+          </div>
 
           <form class="setup-form" id="setupForm">
             <div class="theme-field">
@@ -67,6 +72,14 @@
 
             <button class="primary-action" type="submit" data-testid="start-test">开始今日检测</button>
           </form>
+          <div class="theme-brief" id="themeBrief" aria-live="polite">
+            <div>
+              <span>当前剧本</span>
+              <strong id="briefTitle">打工人今日精神巡检</strong>
+            </div>
+            <p id="briefCopy">从睡眠、通勤、会议和余额里抽样，生成一份适合发出去的状态报告。</p>
+            <div class="brief-tags" id="briefTags"></div>
+          </div>
         </div>
 
         <aside class="hero-lab" aria-label="今日精神播报">
@@ -85,6 +98,8 @@
               <strong id="hotCity">--</strong>
             </div>
           </div>
+
+          <div class="daily-signals" id="dailySignals" aria-label="今日信号"></div>
 
           <div class="sample-report">
             <div class="sample-topline">
@@ -122,6 +137,13 @@
               <strong>隐藏结局</strong>
               <p>先展示诱饵，再用内测预约验证付费冲动。</p>
             </div>
+            <div class="feature-tile">
+              <div class="tile-visual report-visual" aria-hidden="true">
+                <span></span><span></span><span></span>
+              </div>
+              <strong>回流码</strong>
+              <p>每张图带今日编号和二维码，截图传播也能回流。</p>
+            </div>
           </div>
         </aside>
         </section>
@@ -138,6 +160,11 @@
           </div>
           <div class="progress-track"><div class="progress-bar" id="progressBar"></div></div>
           <div class="answer-feedback hidden" id="answerFeedback"></div>
+          <div class="question-context">
+            <span>本题校准</span>
+            <strong id="questionFactor">睡眠电量</strong>
+            <p id="questionHint">选择后自动进入下一题，整套题约 10 秒。</p>
+          </div>
           <p class="question-dimension" id="questionDimension"></p>
           <h2 id="questionTitle"></h2>
           <div class="option-grid" id="optionGrid"></div>
@@ -186,6 +213,7 @@
             <p id="adviceText"></p>
           </div>
           <div class="diagnosis-grid" id="diagnosisGrid"></div>
+          <div class="result-deep-grid" id="resultDeepGrid"></div>
           <div class="report-footer">huozheme.today</div>
         </div>
 
@@ -194,6 +222,7 @@
             <span>适合发出去的那句</span>
             <p id="shareCopy"></p>
           </div>
+          <div class="insight-stack" id="shareReasons" aria-label="传播理由"></div>
           <div class="poster-studio">
             <div class="studio-head">
               <div>
@@ -217,11 +246,30 @@
             <button class="ghost-action" id="copyShareBtn" type="button">复制分享文案</button>
             <button class="ghost-action" id="againBtn" type="button">再测一次</button>
           </div>
+          <div class="challenge-card" id="challengeCard"></div>
           <div class="premium-card">
             <div>
               <span>隐藏结局</span>
               <strong>年度精神账单</strong>
               <p>黑化主题卡、朋友圈文案加强版、年度崩溃热力图。</p>
+            </div>
+            <div class="premium-value-grid">
+              <div>
+                <span>年度热力图</span>
+                <strong>看见哪天最容易冒烟</strong>
+              </div>
+              <div>
+                <span>身份黑化卡</span>
+                <strong>打工人 / 学生 / 独居 / 自由职业</strong>
+              </div>
+              <div>
+                <span>朋友圈包</span>
+                <strong>3 种语气一键换</strong>
+              </div>
+              <div>
+                <span>城市榜入口</span>
+                <strong>同城样本继续累加</strong>
+              </div>
             </div>
             <div class="premium-peek">
               <span>已生成 3 条付费洞察</span>
@@ -286,6 +334,7 @@
         </div>
         <div class="rail-kicker">今日热度</div>
         <h2>测一下精神存活指数，生成一张能发出去的状态报告。</h2>
+        <div class="rail-now" id="railNow"></div>
         <div class="rail-grid">
           <div>
             <span>今日样本</span>
@@ -313,6 +362,7 @@
           <span>测完会得到</span>
           <strong>存活指数、人设标签、报告图和隐藏结局入口</strong>
         </div>
+        <div class="rail-feed" id="railFeed" aria-label="今日内容预告"></div>
       </aside>
     </main>
 
