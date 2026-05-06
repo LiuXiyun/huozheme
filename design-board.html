@@ -1,0 +1,613 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>活着么 UI Design Board</title>
+    <style>
+      :root {
+        --bg: #0d0f12;
+        --panel: #171a1f;
+        --panel-2: #20262b;
+        --text: #f6f1de;
+        --muted: #9fa5a5;
+        --line: rgba(255, 255, 255, 0.14);
+        --lime: #caff45;
+        --red: #ff6254;
+        --cyan: #55d7d2;
+        --gold: #ffd15f;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        padding: 40px;
+        background: #08090b;
+        color: var(--text);
+        font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+          "Microsoft YaHei", sans-serif;
+      }
+
+      .board {
+        display: grid;
+        grid-template-columns: repeat(4, 390px);
+        align-items: start;
+        gap: 40px;
+      }
+
+      .artboard {
+        position: relative;
+        overflow: hidden;
+        width: 390px;
+        min-height: 844px;
+        border-radius: 28px;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        background:
+          radial-gradient(circle at 18% 10%, rgba(202, 255, 69, 0.15), transparent 170px),
+          radial-gradient(circle at 84% 0%, rgba(255, 98, 84, 0.14), transparent 190px),
+          linear-gradient(150deg, #14171b, #0d0f12 55%, #11171a);
+        box-shadow: 0 28px 120px rgba(0, 0, 0, 0.4);
+      }
+
+      .artboard::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        opacity: 0.13;
+        background-image:
+          linear-gradient(rgba(255, 255, 255, 0.4) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.32) 1px, transparent 1px);
+        background-size: 28px 28px;
+        mask-image: linear-gradient(to bottom, #000, transparent 76%);
+      }
+
+      .topbar,
+      .section,
+      .dock,
+      .modal {
+        position: relative;
+        z-index: 1;
+      }
+
+      .topbar {
+        height: 58px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 18px;
+        border-bottom: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.035);
+      }
+
+      .logo {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        font-weight: 950;
+      }
+
+      .dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: var(--lime);
+        box-shadow: 0 0 22px rgba(202, 255, 69, 0.8);
+      }
+
+      .pill {
+        width: max-content;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        padding: 7px 10px;
+        color: var(--muted);
+        background: rgba(255, 255, 255, 0.06);
+        font-size: 12px;
+        font-weight: 850;
+      }
+
+      .section {
+        padding: 20px;
+      }
+
+      h1,
+      h2,
+      p {
+        margin: 0;
+      }
+
+      .mega {
+        margin-top: 18px;
+        font-size: 82px;
+        line-height: 0.84;
+        font-weight: 1000;
+      }
+
+      .sub {
+        margin-top: 16px;
+        color: #ddd7c7;
+        font-size: 20px;
+        line-height: 1.25;
+        font-weight: 850;
+      }
+
+      .ticker {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        margin-top: 22px;
+      }
+
+      .metric,
+      .card,
+      .theme,
+      .option,
+      .share-card,
+      .premium-box {
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.065);
+      }
+
+      .metric {
+        padding: 12px;
+      }
+
+      .metric span,
+      .label {
+        display: block;
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 850;
+      }
+
+      .metric strong {
+        display: block;
+        margin-top: 8px;
+        color: var(--lime);
+        font-size: 23px;
+        line-height: 1;
+      }
+
+      .theme-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+        margin-top: 18px;
+      }
+
+      .theme {
+        min-height: 76px;
+        padding: 13px;
+      }
+
+      .theme.active {
+        border-color: var(--lime);
+        background: rgba(202, 255, 69, 0.12);
+      }
+
+      .theme strong {
+        display: block;
+        font-size: 17px;
+      }
+
+      .theme span {
+        display: block;
+        margin-top: 6px;
+        color: var(--muted);
+        font-size: 11px;
+      }
+
+      .field-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-top: 12px;
+      }
+
+      .field {
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 12px;
+        background: rgba(0, 0, 0, 0.16);
+      }
+
+      .field strong {
+        display: block;
+        margin-top: 8px;
+      }
+
+      .cta {
+        height: 56px;
+        display: grid;
+        place-items: center;
+        margin-top: 14px;
+        border-radius: 14px;
+        color: #0d0f12;
+        background: var(--lime);
+        font-weight: 950;
+      }
+
+      .mini-report {
+        margin-top: 16px;
+        padding: 18px;
+        min-height: 180px;
+        background:
+          radial-gradient(circle at 85% 18%, rgba(255, 98, 84, 0.3), transparent 120px),
+          rgba(255, 255, 255, 0.06);
+      }
+
+      .score-big {
+        color: var(--lime);
+        font-size: 86px;
+        line-height: 0.9;
+        font-weight: 1000;
+      }
+
+      .dock {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        position: absolute;
+        left: 20px;
+        right: 20px;
+        bottom: 20px;
+      }
+
+      .dock div {
+        min-height: 78px;
+        padding: 10px;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.055);
+      }
+
+      .dock strong {
+        display: block;
+        margin-top: 6px;
+        font-size: 15px;
+      }
+
+      .progress {
+        height: 8px;
+        overflow: hidden;
+        margin-top: 14px;
+        border-radius: 99px;
+        background: rgba(255, 255, 255, 0.12);
+      }
+
+      .progress i {
+        display: block;
+        width: 40%;
+        height: 100%;
+        border-radius: inherit;
+        background: linear-gradient(90deg, var(--red), var(--lime));
+      }
+
+      .question {
+        margin-top: 34px;
+        font-size: 42px;
+        line-height: 1.05;
+        font-weight: 1000;
+      }
+
+      .option-list {
+        display: grid;
+        gap: 12px;
+        margin-top: 30px;
+      }
+
+      .option {
+        min-height: 72px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 15px;
+        font-weight: 900;
+      }
+
+      .option b {
+        width: 32px;
+        height: 32px;
+        display: grid;
+        place-items: center;
+        border-radius: 10px;
+        color: #0d0f12;
+        background: var(--lime);
+      }
+
+      .side-note {
+        margin-top: 18px;
+        padding: 14px;
+        color: var(--muted);
+        border-left: 3px solid var(--cyan);
+        background: rgba(85, 215, 210, 0.08);
+        line-height: 1.45;
+      }
+
+      .report {
+        padding: 18px;
+        margin: 14px;
+        min-height: 535px;
+        border-radius: 18px;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        background:
+          radial-gradient(circle at 82% 14%, rgba(255, 98, 84, 0.28), transparent 120px),
+          linear-gradient(155deg, #1b1f24, #0e1013);
+      }
+
+      .score-row {
+        display: grid;
+        grid-template-columns: 150px 1fr;
+        gap: 12px;
+        align-items: center;
+        margin-top: 18px;
+      }
+
+      .ring {
+        width: 146px;
+        height: 146px;
+        display: grid;
+        place-items: center;
+        border-radius: 50%;
+        background: radial-gradient(circle, #111 55%, transparent 57%), conic-gradient(var(--lime) 0 277deg, rgba(255,255,255,.14) 277deg);
+      }
+
+      .ring strong {
+        font-size: 52px;
+      }
+
+      .stamp {
+        width: max-content;
+        padding: 12px;
+        border: 1px solid rgba(255, 98, 84, 0.55);
+        border-radius: 12px;
+        color: var(--red);
+        font-size: 22px;
+        font-weight: 1000;
+        transform: rotate(3deg);
+      }
+
+      .report h2 {
+        margin-top: 14px;
+        font-size: 29px;
+        line-height: 1.1;
+      }
+
+      .report p {
+        margin-top: 10px;
+        color: #ddd7c7;
+        line-height: 1.45;
+      }
+
+      .grid2,
+      .grid3 {
+        display: grid;
+        gap: 8px;
+        margin-top: 12px;
+      }
+
+      .grid2 {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .grid3 {
+        grid-template-columns: repeat(3, 1fr);
+      }
+
+      .chip-card {
+        padding: 12px;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.07);
+      }
+
+      .chip-card strong {
+        display: block;
+        margin-top: 7px;
+      }
+
+      .share-card {
+        margin: 0 14px 14px;
+        padding: 16px;
+      }
+
+      .share-card strong {
+        display: block;
+        margin-top: 8px;
+        font-size: 20px;
+        line-height: 1.25;
+      }
+
+      .actions {
+        display: grid;
+        gap: 10px;
+        margin: 0 14px 14px;
+      }
+
+      .actions div {
+        height: 48px;
+        display: grid;
+        place-items: center;
+        border-radius: 12px;
+        border: 1px solid var(--line);
+        font-weight: 950;
+      }
+
+      .actions .primary {
+        border: 0;
+        color: #0d0f12;
+        background: var(--lime);
+      }
+
+      .modal-backdrop {
+        position: absolute;
+        inset: 0;
+        z-index: 2;
+        display: grid;
+        place-items: center;
+        background: rgba(0, 0, 0, 0.62);
+        backdrop-filter: blur(10px);
+      }
+
+      .modal {
+        width: 340px;
+        padding: 22px;
+        border: 1px solid var(--line);
+        border-radius: 20px;
+        background: #181b20;
+        box-shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
+      }
+
+      .modal h2 {
+        margin-top: 8px;
+        font-size: 31px;
+        line-height: 1.05;
+      }
+
+      .modal p {
+        margin-top: 10px;
+        color: #ddd7c7;
+        line-height: 1.5;
+      }
+
+      .heat {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 6px;
+        margin-top: 18px;
+      }
+
+      .heat i {
+        height: 34px;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.08);
+      }
+
+      .heat i:nth-child(3n) {
+        background: rgba(255, 209, 95, 0.75);
+      }
+
+      .heat i:nth-child(4n) {
+        background: rgba(255, 98, 84, 0.72);
+      }
+
+      .modal .cta {
+        margin-top: 18px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="board">
+      <section class="artboard" id="home-artboard">
+        <div class="topbar"><div class="logo"><span class="dot"></span>活着么</div><div class="pill">AI题库在线</div></div>
+        <div class="section">
+          <div class="pill">今日精神存活站 / Shanghai</div>
+          <h1 class="mega">活着么</h1>
+          <p class="sub">10 秒生成一张能发出去的精神存活报告。</p>
+          <div class="ticker">
+            <div class="metric"><span>今日检测</span><strong>8921</strong></div>
+            <div class="metric"><span>平均存活</span><strong>42</strong></div>
+            <div class="metric"><span>异常城市</span><strong>杭州</strong></div>
+          </div>
+          <div class="theme-grid">
+            <div class="theme active"><strong>打工人</strong><span>工位运行模式</span></div>
+            <div class="theme"><strong>大学生</strong><span>DDL 呼吸模式</span></div>
+            <div class="theme"><strong>独居人</strong><span>深夜离线模式</span></div>
+            <div class="theme"><strong>自由职业</strong><span>自我驱动模式</span></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><span class="label">城市</span><strong>上海</strong></div>
+            <div class="field"><span class="label">状态</span><strong>肉体上班</strong></div>
+          </div>
+          <div class="cta">开始今日检测</div>
+          <div class="card mini-report">
+            <span class="label">报告样张</span>
+            <div class="score-big">37</div>
+            <strong>低电量营业中</strong>
+            <p>系统检测到你正在以最低亮度运行人生。</p>
+          </div>
+        </div>
+        <div class="dock">
+          <div><span class="label">报告图</span><strong>3:4 海报</strong></div>
+          <div><span class="label">城市榜</span><strong>身份排名</strong></div>
+          <div><span class="label">隐藏结局</span><strong>9.9 内测</strong></div>
+        </div>
+      </section>
+
+      <section class="artboard" id="quiz-artboard">
+        <div class="topbar"><div class="logo"><span class="dot"></span>活着么</div><div class="pill">2/5</div></div>
+        <div class="section">
+          <div class="pill">上海 / 打工人 / AI题库</div>
+          <div class="progress"><i></i></div>
+          <div class="question">今天会议含量如何？</div>
+          <div class="option-list">
+            <div class="option"><b>A</b>几乎没有，耳朵自由</div>
+            <div class="option"><b>B</b>一两个，还能呼吸</div>
+            <div class="option"><b>C</b>连环会，脑子排队下线</div>
+            <div class="option"><b>D</b>会中会，像被 PPT 腌入味</div>
+          </div>
+          <div class="side-note">题库每天刷新，分数只是娱乐算法，真正好玩的是你发出去的那张图。</div>
+        </div>
+      </section>
+
+      <section class="artboard" id="result-artboard">
+        <div class="topbar"><div class="logo"><span class="dot"></span>报告完成</div><div class="pill">可保存海报</div></div>
+        <div class="report">
+          <span class="label">打工人精神存活报告</span>
+          <div class="score-row">
+            <div class="ring"><strong>77</strong></div>
+            <div class="stamp">状态在线</div>
+          </div>
+          <h2>肉体上班，灵魂请假</h2>
+          <p>你今天像刚升级过的人类样本，但请不要被老板发现。</p>
+          <div class="grid2">
+            <div class="chip-card"><span class="label">上海用户中击败</span><strong>63%</strong></div>
+            <div class="chip-card"><span class="label">打工人中击败</span><strong>58%</strong></div>
+          </div>
+          <div class="grid2">
+            <div class="chip-card"><span class="label">今日死因</span><strong>周报反噬</strong></div>
+            <div class="chip-card"><span class="label">复活方式</span><strong>喝一杯想喝的</strong></div>
+          </div>
+          <div class="grid3">
+            <div class="chip-card"><span class="label">电量</span><strong>77%</strong></div>
+            <div class="chip-card"><span class="label">风险</span><strong>31%</strong></div>
+            <div class="chip-card"><span class="label">复活</span><strong>82%</strong></div>
+          </div>
+        </div>
+        <div class="share-card"><span class="label">适合发出去的那句</span><strong>我今天精神存活指数 77，今日检测：本人暂未阵亡。</strong></div>
+        <div class="actions"><div class="primary">保存当前海报</div><div>复制分享文案</div></div>
+      </section>
+
+      <section class="artboard" id="premium-artboard">
+        <div class="topbar"><div class="logo"><span class="dot"></span>隐藏结局</div><div class="pill">内测预约</div></div>
+        <div class="section">
+          <div class="premium-box" style="padding:18px;">
+            <span class="label">已生成 3 条付费洞察</span>
+            <h2 style="margin-top:8px;">年度精神账单</h2>
+            <p style="margin-top:8px;color:#ddd7c7;line-height:1.45;">你的年度崩溃高峰可能出现在周一 10:30，主要症状是通知过敏。</p>
+          </div>
+        </div>
+        <div class="modal-backdrop">
+          <div class="modal">
+            <span class="label">内测预约</span>
+            <h2>隐藏结局开放内测</h2>
+            <p>不会真实扣款。预约后优先开放 9.9 内测价。</p>
+            <div class="heat">
+              <i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+              <i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+            </div>
+            <div class="grid3">
+              <div class="chip-card"><span class="label">热力图</span><strong>周一</strong></div>
+              <div class="chip-card"><span class="label">死因</span><strong>通知</strong></div>
+              <div class="chip-card"><span class="label">文案</span><strong>3条</strong></div>
+            </div>
+            <div class="cta">记录我的内测名额</div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </body>
+</html>

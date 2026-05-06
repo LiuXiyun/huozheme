@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#101114" />
+    <meta name="description" content="每天 10 秒测一下你的精神存活指数，生成今日精神存活报告。" />
+    <meta property="og:title" content="活着么" />
+    <meta property="og:description" content="今日精神存活指数测试" />
+    <title>活着么</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="app-topbar">
+        <div class="topbar-brand"><span class="pulse-dot"></span><strong>活着么</strong></div>
+        <div class="topbar-status" id="topbarStatus">AI题库在线</div>
+      </header>
+      <section class="page hero-page" id="startView" data-testid="start-view">
+        <div class="scan-grid" aria-hidden="true"></div>
+        <div class="hero-copy">
+          <div class="brand-row">
+            <span class="pulse-dot"></span>
+            <span>每日精神存活站</span>
+          </div>
+          <h1>活着么</h1>
+          <p class="tagline">测一下今日精神存活指数，顺手生成一张能发出去的状态报告。</p>
+
+          <form class="setup-form" id="setupForm">
+            <div class="theme-field">
+              <span class="field-label">今日剧本</span>
+              <div class="theme-grid" id="themeGrid" role="radiogroup" aria-label="今日剧本"></div>
+            </div>
+
+            <label class="field">
+              <span>城市</span>
+              <select id="city" required>
+                <option value="上海">上海</option>
+                <option value="北京">北京</option>
+                <option value="深圳">深圳</option>
+                <option value="广州">广州</option>
+                <option value="杭州">杭州</option>
+                <option value="成都">成都</option>
+                <option value="武汉">武汉</option>
+                <option value="南京">南京</option>
+                <option value="长沙">长沙</option>
+                <option value="重庆">重庆</option>
+                <option value="西安">西安</option>
+                <option value="苏州">苏州</option>
+              </select>
+            </label>
+
+            <label class="field">
+              <span>今日状态</span>
+              <select id="mood" required>
+                <option value="肉体上班，灵魂请假">肉体上班，灵魂请假</option>
+                <option value="电量 2%，还在硬撑">电量 2%，还在硬撑</option>
+                <option value="看似正常，实则离线">看似正常，实则离线</option>
+                <option value="想发财，但先想睡觉">想发财，但先想睡觉</option>
+                <option value="心态稳定地崩着">心态稳定地崩着</option>
+              </select>
+            </label>
+
+            <button class="primary-action" type="submit" data-testid="start-test">开始今日检测</button>
+          </form>
+        </div>
+
+        <aside class="hero-lab" aria-label="今日精神播报">
+          <div class="live-board">
+            <div>
+              <span>今日检测</span>
+              <strong id="todayTests">--</strong>
+            </div>
+            <div>
+              <span>平均存活</span>
+              <strong id="todayAverage">--</strong>
+            </div>
+            <div>
+              <span>异常城市</span>
+              <strong id="hotCity">--</strong>
+            </div>
+          </div>
+
+          <div class="sample-report">
+            <div class="sample-topline">
+              <span>报告样张</span>
+              <span id="sampleDate"></span>
+            </div>
+            <div class="sample-score">37</div>
+            <h2>低电量营业中</h2>
+            <p>系统检测到你正在以最低亮度运行人生。</p>
+            <div class="sample-tags">
+              <span>上海打工人</span>
+              <span>击败 12%</span>
+            </div>
+          </div>
+
+          <div class="feature-gallery" aria-label="核心功能预览">
+            <div class="feature-tile">
+              <div class="tile-visual report-visual" aria-hidden="true">
+                <span></span><span></span><span></span>
+              </div>
+              <strong>报告图</strong>
+              <p>竖版社交卡，适合朋友圈、小红书和群聊。</p>
+            </div>
+            <div class="feature-tile">
+              <div class="tile-visual rank-visual" aria-hidden="true">
+                <i style="height: 32%"></i><i style="height: 68%"></i><i style="height: 46%"></i>
+              </div>
+              <strong>城市榜</strong>
+              <p>把结果挂到城市和身份上，天然有比较欲。</p>
+            </div>
+            <div class="feature-tile">
+              <div class="tile-visual unlock-visual" aria-hidden="true">
+                <span>9.9</span>
+              </div>
+              <strong>隐藏结局</strong>
+              <p>先展示诱饵，再用内测预约验证付费冲动。</p>
+            </div>
+          </div>
+        </aside>
+      </section>
+
+      <section class="page quiz-page hidden" id="quizView" data-testid="quiz-view" aria-live="polite">
+        <div class="quiz-card">
+          <div class="quiz-topline">
+            <span id="questionCounter">1/5</span>
+            <span id="quizMeta">今日剧本</span>
+          </div>
+          <div class="progress-track"><div class="progress-bar" id="progressBar"></div></div>
+          <p class="question-dimension" id="questionDimension"></p>
+          <h2 id="questionTitle"></h2>
+          <div class="option-grid" id="optionGrid"></div>
+        </div>
+      </section>
+
+      <section class="page result-page hidden" id="resultView" data-testid="result-view">
+        <div class="report-card" id="reportCard">
+          <div class="report-header">
+            <span id="reportTheme">今日精神存活报告</span>
+            <time id="reportDate"></time>
+          </div>
+          <div class="score-row">
+            <div class="score-ring" id="scoreRing">
+              <span id="scoreValue">0</span>
+              <small>存活指数</small>
+            </div>
+            <div class="risk-stamp" id="riskStamp"></div>
+          </div>
+          <h2 id="reportStatus"></h2>
+          <p id="reportRoast"></p>
+          <div class="rank-grid">
+            <div>
+              <strong id="cityRank"></strong>
+              <span id="cityRankLabel"></span>
+            </div>
+            <div>
+              <strong id="personaRank"></strong>
+              <span id="personaRankLabel"></span>
+            </div>
+          </div>
+          <div class="signal-list">
+            <div>
+              <span>今日死因</span>
+              <strong id="causeText"></strong>
+            </div>
+            <div>
+              <span>复活方式</span>
+              <strong id="reviveText"></strong>
+            </div>
+          </div>
+          <div class="advice-box">
+            <span>今日建议</span>
+            <p id="adviceText"></p>
+          </div>
+          <div class="diagnosis-grid" id="diagnosisGrid"></div>
+          <div class="report-footer">huozheme.today</div>
+        </div>
+
+        <aside class="result-panel">
+          <div class="share-panel">
+            <span>适合发出去的那句</span>
+            <p id="shareCopy"></p>
+          </div>
+          <div class="poster-studio">
+            <div class="studio-head">
+              <div>
+                <span>分享图工厂</span>
+                <strong>选一个最想发的版本</strong>
+              </div>
+              <button class="tiny-action" id="refreshCopyBtn" type="button">换一句</button>
+            </div>
+            <div class="poster-preview-shell">
+              <canvas id="posterPreview" width="540" height="720" role="img" aria-label="分享图预览"></canvas>
+            </div>
+            <div class="template-switch" id="templateSwitch" aria-label="分享图模板"></div>
+            <div class="tone-switch" id="toneSwitch" aria-label="毒舌强度"></div>
+          </div>
+          <div class="result-actions">
+            <button class="primary-action" id="saveImageBtn" type="button">保存当前海报</button>
+            <button class="ghost-action" id="copyShareBtn" type="button">复制分享文案</button>
+            <button class="ghost-action" id="againBtn" type="button">再测一次</button>
+          </div>
+          <div class="premium-card">
+            <div>
+              <span>隐藏结局</span>
+              <strong>年度精神账单</strong>
+              <p>黑化主题卡、朋友圈文案加强版、年度崩溃热力图。</p>
+            </div>
+            <div class="premium-peek">
+              <span>已生成 3 条付费洞察</span>
+              <strong id="premiumPeekText">你的年度崩溃高峰可能出现在周一 10:30</strong>
+            </div>
+            <div class="premium-proof">
+              <span id="premiumCount">--</span>
+              <strong>人今天预约了内测</strong>
+            </div>
+            <button id="premiumBtn" type="button">预约 9.9 内测</button>
+          </div>
+          <div class="return-card">
+            <span>明日刷新</span>
+            <strong id="tomorrowHook"></strong>
+          </div>
+        </aside>
+      </section>
+
+      <section class="modal-layer hidden" id="premiumModal" aria-modal="true" role="dialog" aria-labelledby="premiumTitle">
+        <div class="modal-card">
+          <button class="modal-close" id="closePremiumBtn" type="button" aria-label="关闭">×</button>
+          <span class="modal-kicker">内测预约</span>
+          <h2 id="premiumTitle">隐藏结局开放内测</h2>
+          <p>当前版本不会真实扣款。预约后会记录你的兴趣，后续接入支付时优先开放 9.9 内测价。</p>
+          <div class="premium-preview-grid">
+            <div>
+              <span>年度崩溃热力图</span>
+              <strong>周一 10:30</strong>
+            </div>
+            <div>
+              <span>人格化死因</span>
+              <strong>通知过敏</strong>
+            </div>
+            <div>
+              <span>朋友圈加强版</span>
+              <strong>3 条</strong>
+            </div>
+          </div>
+          <div class="unlock-list">
+            <span>年度精神账单</span>
+            <span>黑化主题卡</span>
+            <span>朋友圈文案加强版</span>
+          </div>
+          <button class="primary-action" id="reservePremiumBtn" type="button">记录我的内测名额</button>
+        </div>
+      </section>
+
+      <canvas id="shareCanvas" width="1080" height="1440" aria-hidden="true"></canvas>
+    </main>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <script src="./app.js"></script>
+  </body>
+</html>
