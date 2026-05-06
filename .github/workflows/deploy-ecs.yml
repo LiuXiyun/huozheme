@@ -1,0 +1,32 @@
+name: Deploy ECS
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy on ECS
+        env:
+          ECS_HOST: ${{ secrets.ECS_HOST }}
+          ECS_USER: ${{ secrets.ECS_USER }}
+          ECS_PORT: ${{ secrets.ECS_PORT }}
+          ECS_SSH_KEY: ${{ secrets.ECS_SSH_KEY }}
+          APP_DIR: ${{ secrets.ECS_APP_DIR }}
+        run: |
+          set -euo pipefail
+          if [ -z "${ECS_HOST:-}" ] || [ -z "${ECS_SSH_KEY:-}" ]; then
+            echo "ECS deploy secrets are not configured yet; skipping."
+            exit 0
+          fi
+          ECS_USER="${ECS_USER:-root}"
+          ECS_PORT="${ECS_PORT:-22}"
+          APP_DIR="${APP_DIR:-/var/www/huozheme}"
+          mkdir -p ~/.ssh
+          printf '%s\n' "$ECS_SSH_KEY" > ~/.ssh/ecs_key
+          chmod 600 ~/.ssh/ecs_key
+          ssh-keyscan -p "$ECS_PORT" -H "$ECS_HOST" >> ~/.ssh/known_hosts
+          ssh -i ~/.ssh/ecs_key -p "$ECS_PORT" "$ECS_USER@$ECS_HOST" "APP_DIR='$APP_DIR' bash '$APP_DIR/scripts/server-deploy.sh'"

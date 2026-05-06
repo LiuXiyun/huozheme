@@ -10,6 +10,12 @@ npm run dev
 
 打开 `http://127.0.0.1:4173/`。
 
+如果要在本地模拟服务器 API：
+
+```bash
+npm run dev:server
+```
+
 ## 检查
 
 ```bash
@@ -41,6 +47,12 @@ UPSTASH_REDIS_REST_TOKEN=你的 Upstash Redis REST Token
 - `/api/stats` 会展示每日冷启动基数，并叠加真实完成测试、保存海报、预约内测数据。
 - `/api/event` 会记录开始测试、完成测试、复制、保存海报、预约内测等事件。
 - `/api/qr` 会为分享海报生成同源二维码，便于截图回流。
+
+## 部署到阿里云 ECS
+
+项目也支持用 Node + PM2 + Nginx 跑在 ECS 上，并通过 GitHub Actions 自动部署。
+
+部署文档见 [docs/DEPLOY-ECS.md](docs/DEPLOY-ECS.md)。
 
 ## 当前 MVP 功能
 
