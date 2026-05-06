@@ -38,6 +38,7 @@ UPSTASH_REDIS_REST_TOKEN=你的 Upstash Redis REST Token
 启用后：
 - `/api/generate` 会按日期、主题、城市和分数段缓存 AI 生成结果。
 - `/api/questions` 会按日期、主题和城市缓存每日 AI 题库池。
+- `/api/stats` 会展示每日冷启动基数，并叠加真实完成测试、保存海报、预约内测数据。
 - `/api/event` 会记录开始测试、完成测试、复制、保存海报、预约内测等事件。
 
 ## 当前 MVP 功能

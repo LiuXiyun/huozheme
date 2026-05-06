@@ -746,6 +746,7 @@ init();
 function init() {
   renderThemeButtons();
   renderAtmosphere();
+  hydrateStats();
   qs("#sampleDate").textContent = formatDate(new Date());
   qs("#premiumCount").textContent = `${128 + (hash(dateKey) % 260)}`;
   setTopbarStatus("AI题库在线");
@@ -843,9 +844,28 @@ function renderSwitch(selector, options, activeValue, onSelect) {
 
 function renderAtmosphere() {
   const seed = hash(dateKey);
-  qs("#todayTests").textContent = `${2800 + (seed % 6900)}`;
+  qs("#todayTests").textContent = `${320 + (seed % 620)}`;
   qs("#todayAverage").textContent = `${31 + (seed % 37)}`;
   qs("#hotCity").textContent = themes.worker.hotLine;
+}
+
+async function hydrateStats() {
+  try {
+    const response = await fetch("/api/stats");
+    if (!response.ok) return;
+    const data = await response.json();
+    if (Number.isFinite(Number(data.tests))) {
+      qs("#todayTests").textContent = String(data.tests);
+    }
+    if (Number.isFinite(Number(data.average))) {
+      qs("#todayAverage").textContent = String(data.average);
+    }
+    if (data.activeCity) {
+      qs("#hotCity").textContent = data.activeCity;
+    }
+  } catch {
+    // Keep the local daily baseline if stats are unavailable.
+  }
 }
 
 function updateSampleTheme() {
