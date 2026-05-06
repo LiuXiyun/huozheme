@@ -13,6 +13,7 @@ module.exports = async function handler(req, res) {
     const profile = body.profile || {};
     const answers = Array.isArray(body.answers) ? body.answers : [];
     const tier = baseResult.tier || "mid";
+    const answerFingerprint = buildAnswerFingerprint(answers, baseResult.answerSignature);
     const dateKey = new Date().toISOString().slice(0, 10);
     const cacheKey = [
       "huozheme:ai",
@@ -21,6 +22,7 @@ module.exports = async function handler(req, res) {
       profile.city || "unknown",
       tier,
       Math.floor(Number(baseResult.score || 50) / 10) * 10,
+      answerFingerprint,
     ].join(":");
 
     const cached = await getJson(cacheKey);
@@ -65,7 +67,7 @@ async function callDeepSeek({ profile, answers, baseResult }) {
               title: "不超过12字的状态标题",
               roast: "35-55字毒舌吐槽",
               advice: "25-45字今日建议",
-              cause: "4-8字今日死因",
+              cause: "4-8字今日故障点",
               revive: "4-10字复活方式",
               premiumPeek: "35-55字付费预览洞察",
               shareLines: {
@@ -77,6 +79,7 @@ async function callDeepSeek({ profile, answers, baseResult }) {
             profile,
             answers,
             baseResult,
+            answerFingerprint,
           }),
         },
       ],
@@ -115,6 +118,25 @@ function normalizeLines(lines) {
 
 function limit(text, maxLength) {
   return String(text || "").trim().slice(0, maxLength);
+}
+
+function buildAnswerFingerprint(answers, fallback = "") {
+  const text =
+    fallback ||
+    answers
+      .map((answer) => `${answer.question || ""}:${answer.value || 0}:${answer.label || ""}`)
+      .join("|");
+  return hash(text).toString(36).slice(0, 8);
+}
+
+function hash(input) {
+  let value = 0;
+  const text = String(input || "");
+  for (let index = 0; index < text.length; index += 1) {
+    value = (value << 5) - value + text.charCodeAt(index);
+    value |= 0;
+  }
+  return Math.abs(value);
 }
 
 async function safeEvent(event) {

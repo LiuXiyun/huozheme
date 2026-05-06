@@ -12,6 +12,14 @@ const state = {
   tone: "sharp",
   copySeed: 0,
   aiStatus: "idle",
+  stats: {},
+  sessionId: createId("sess"),
+  shareId: "",
+  entryShareId: "",
+  questionStartedAt: 0,
+  qrDataUrl: "",
+  qrImage: null,
+  reservedPremium: false,
 };
 
 const posterTemplates = {
@@ -79,7 +87,7 @@ const themes = {
           { label: "立刻出发，电量充足", value: 14 },
           { label: "看是谁，再装没看见", value: 1 },
           { label: "身体拒绝，嘴上答应", value: -10 },
-          { label: "自动回复：本人已离线", value: -17 },
+          { label: "自动回复：本人低电量", value: -17 },
         ],
       },
       {
@@ -377,7 +385,7 @@ const extraQuestionBank = {
         { label: "很远，暂时阳光明媚", value: 13 },
         { label: "在旁边坐着，不说话", value: 2 },
         { label: "贴脸输出，无法忽略", value: -13 },
-        { label: "已经开始给我写墓志铭", value: -22 },
+        { label: "已经开始替我写检讨", value: -22 },
       ],
     },
     {
@@ -387,7 +395,7 @@ const extraQuestionBank = {
       options: [
         { label: "安排满了，生活在线", value: 14 },
         { label: "睡觉为主，娱乐为辅", value: 4 },
-        { label: "只想消失两天", value: -9 },
+        { label: "只想静音两天", value: -9 },
         { label: "周末也像工作缓冲区", value: -18 },
       ],
     },
@@ -568,7 +576,7 @@ const extraQuestionBank = {
         { label: "接，正好说说话", value: 15 },
         { label: "看是谁再决定", value: 4 },
         { label: "等它自己停", value: -10 },
-        { label: "手机和我都装死", value: -19 },
+        { label: "手机和我都静音", value: -19 },
       ],
     },
   ],
@@ -603,7 +611,7 @@ const extraQuestionBank = {
         { label: "整洁，像要赚钱", value: 15 },
         { label: "可用，有点乱", value: 4 },
         { label: "文件和杯子混战", value: -10 },
-        { label: "桌面像项目坟场", value: -20 },
+        { label: "桌面像项目废墟", value: -20 },
       ],
     },
     {
@@ -694,9 +702,9 @@ const shareLines = {
     low: "今天不是没电，是被生活拔了插头还在假装联网。",
   },
   black: {
-    high: "今日检测：本人暂未阵亡，甚至有点冒犯命运。",
+    high: "今日检测：本人暂未掉线，甚至有点冒犯命运。",
     mid: "今日检测：肉体仍在服务区，灵魂正在排队补票。",
-    low: "今日检测：系统建议周围人确认一下我是否只是自动回复。",
+    low: "今日检测：本人低亮度运行，请世界先小声一点。",
   },
 };
 
@@ -724,7 +732,7 @@ const titles = [
   "心态稳定地崩着",
   "人还在，魂稍后回电",
   "低电量营业中",
-  "今日未阵亡，但有划痕",
+  "今日未掉线，但有划痕",
 ];
 
 const dateKey = formatDateKey(new Date());
@@ -740,19 +748,33 @@ const questionDimension = qs("#questionDimension");
 const optionGrid = qs("#optionGrid");
 const toast = qs("#toast");
 const premiumModal = qs("#premiumModal");
+const answerFeedback = qs("#answerFeedback");
+
+const urlParams = new URLSearchParams(window.location.search);
+state.entryShareId = urlParams.get("s") || urlParams.get("shareId") || "";
+state.shareId = createId("share");
 
 init();
 
 function init() {
+  document.documentElement.style.setProperty("--theme-color", themes[state.activeTheme].color);
   renderThemeButtons();
   renderAtmosphere();
   hydrateStats();
   qs("#sampleDate").textContent = formatDate(new Date());
-  qs("#premiumCount").textContent = `${128 + (hash(dateKey) % 260)}`;
-  setTopbarStatus("AI题库在线");
+  setTopbarStatus("今日题库待生成");
+  renderMiniQr(qs("#desktopQr"), state.shareId);
+  updateRailShare();
+  updateSampleTheme();
+  updatePremiumState();
+  sendEvent("view_start", {
+    source: state.entryShareId ? "share_link" : "direct",
+    action: "page_view",
+  });
 
   setupForm.addEventListener("submit", async (event) => {
     event.preventDefault();
+    setTopbarStatus("题库准备中");
     const theme = themes[state.activeTheme];
     state.profile = {
       city: qs("#city").value,
@@ -763,18 +785,36 @@ function init() {
     };
     state.answers = [];
     state.index = 0;
+    state.copySeed = 0;
+    state.result = null;
+    state.aiStatus = "idle";
+    state.qrDataUrl = "";
+    state.qrImage = null;
     state.questionSource = "local";
     state.questions = selectLocalQuestions(state.activeTheme, 5);
     await hydrateQuestionPool();
     showQuiz();
   });
 
+  qs("#city").addEventListener("change", () => {
+    updateSampleTheme();
+    sendEvent("select_city", { city: qs("#city").value });
+  });
+
+  qs("#mood").addEventListener("change", () => {
+    updateSampleTheme();
+    sendEvent("select_mood", { action: qs("#mood").value });
+  });
+
+  qs("#prevQuestionBtn").addEventListener("click", goPreviousQuestion);
+
   qs("#againBtn").addEventListener("click", () => {
     state.answers = [];
     state.index = 0;
     resultView.classList.add("hidden");
     startView.classList.remove("hidden");
-    setTopbarStatus("AI题库在线");
+    setTopbarStatus("今日题库已准备");
+    sendEvent("restart_test");
     window.scrollTo({ top: 0, behavior: "smooth" });
   });
 
@@ -783,14 +823,26 @@ function init() {
   qs("#premiumBtn").addEventListener("click", openPremiumModal);
   qs("#closePremiumBtn").addEventListener("click", closePremiumModal);
   qs("#reservePremiumBtn").addEventListener("click", reservePremium);
+  qs("#copyCodeBtn").addEventListener("click", copyPremiumCode);
+  qs("#wechatPayBtn").addEventListener("click", openPaymentProvider);
   qs("#refreshCopyBtn").addEventListener("click", () => {
     state.copySeed += 1;
     updateShareCopy();
     updatePosterPreview();
+    sendEvent("result_share_intent", { action: "refresh_copy" });
   });
 
   premiumModal.addEventListener("click", (event) => {
     if (event.target === premiumModal) closePremiumModal();
+  });
+
+  window.addEventListener("beforeunload", () => {
+    if (!quizView.classList.contains("hidden") && state.answers.length < state.questions.length) {
+      sendEvent("quiz_abandon", {
+        question: state.questions[state.index]?.id,
+        elapsedMs: Date.now() - state.questionStartedAt,
+      });
+    }
   });
 }
 
@@ -807,8 +859,10 @@ function renderThemeButtons() {
     button.innerHTML = `<strong>${theme.label}</strong><span>${theme.short}</span>`;
     button.addEventListener("click", () => {
       state.activeTheme = id;
+      document.documentElement.style.setProperty("--theme-color", theme.color);
       renderThemeButtons();
       updateSampleTheme();
+      sendEvent("select_theme", { theme: id });
     });
     themeGrid.appendChild(button);
   });
@@ -817,12 +871,16 @@ function renderThemeButtons() {
 function renderPosterControls() {
   renderSwitch("#templateSwitch", posterTemplates, state.posterTemplate, (id) => {
     state.posterTemplate = id;
+    qs("#posterOutput").classList.add("hidden");
     updatePosterPreview();
+    sendEvent("poster_template_change", { template: id });
   });
   renderSwitch("#toneSwitch", toneOptions, state.tone, (id) => {
     state.tone = id;
+    qs("#posterOutput").classList.add("hidden");
     updateShareCopy();
     updatePosterPreview();
+    sendEvent("tone_change", { tone: id });
   });
 }
 
@@ -833,6 +891,7 @@ function renderSwitch(selector, options, activeValue, onSelect) {
     const button = document.createElement("button");
     button.type = "button";
     button.className = `chip-button${id === activeValue ? " active" : ""}`;
+    button.setAttribute("aria-pressed", id === activeValue ? "true" : "false");
     button.textContent = label;
     button.addEventListener("click", () => {
       onSelect(id);
@@ -844,9 +903,15 @@ function renderSwitch(selector, options, activeValue, onSelect) {
 
 function renderAtmosphere() {
   const seed = hash(dateKey);
-  qs("#todayTests").textContent = `${320 + (seed % 620)}`;
-  qs("#todayAverage").textContent = `${31 + (seed % 37)}`;
-  qs("#hotCity").textContent = themes.worker.hotLine;
+  state.stats = {
+    source: "baseline",
+    tests: 320 + (seed % 620),
+    average: 39 + (seed % 23),
+    activeCity: themes.worker.hotLine,
+    saves: 26 + (seed % 80),
+    reservations: 8 + (seed % 32),
+  };
+  renderStats();
 }
 
 async function hydrateStats() {
@@ -854,15 +919,8 @@ async function hydrateStats() {
     const response = await fetch("/api/stats");
     if (!response.ok) return;
     const data = await response.json();
-    if (Number.isFinite(Number(data.tests))) {
-      qs("#todayTests").textContent = String(data.tests);
-    }
-    if (Number.isFinite(Number(data.average))) {
-      qs("#todayAverage").textContent = String(data.average);
-    }
-    if (data.activeCity) {
-      qs("#hotCity").textContent = data.activeCity;
-    }
+    state.stats = { ...state.stats, ...data };
+    renderStats();
   } catch {
     // Keep the local daily baseline if stats are unavailable.
   }
@@ -870,19 +928,47 @@ async function hydrateStats() {
 
 function updateSampleTheme() {
   const theme = themes[state.activeTheme];
-  qs("#hotCity").textContent = theme.hotLine;
-  qs(".sample-tags").innerHTML = `<span>${theme.hotLine}${theme.label}</span><span>${theme.risk}</span>`;
+  const city = qs("#city")?.value || state.stats.activeCity || theme.hotLine;
+  const seed = hash(`${dateKey}:${state.activeTheme}:${city}`);
+  const sampleScore = clamp(29 + (seed % 43), 17, 88);
+  const sampleBeat = clamp(Math.round(sampleScore * 0.72 + (seed % 18)), 8, 96);
+  const sampleTitles = ["低电量营业中", "人还在，魂稍后回电", "今日轻度冒烟", "看似正常，实则离线"];
+  const sampleTexts = [
+    "系统检测到你正在以低亮度运行人生。",
+    "今日状态适合轻拿轻放，别让通知把你摇醒。",
+    "这不是崩，这是生活后台占用太高。",
+    "看起来还行，细看已经需要一杯热的。",
+  ];
+  qs("#sampleScore").textContent = sampleScore;
+  qs("#sampleTitle").textContent = pick(sampleTitles, seed);
+  qs("#sampleText").textContent = pick(sampleTexts, seed + 3);
+  qs("#samplePersona").textContent = `${city}${theme.label}`;
+  qs("#sampleBeat").textContent = `今日同城样本击败 ${sampleBeat}%`;
+}
+
+function renderStats() {
+  setText("#todayTests", state.stats.tests);
+  setText("#todayAverage", state.stats.average);
+  setText("#hotCity", state.stats.activeCity || themes[state.activeTheme].hotLine);
+  setText("#premiumCount", state.stats.reservations || 128 + (hash(dateKey) % 260));
+  setText("#railTests", state.stats.tests);
+  setText("#railSaves", state.stats.saves);
+  setText("#railReservations", state.stats.reservations);
+  qs("#sampleNote").textContent =
+    state.stats.source === "redis" ? "今日样本 = 冷启动基数 + 真实完成量" : "今日样本使用本地冷启动基数";
+  updateSampleTheme();
 }
 
 function showQuiz() {
   startView.classList.add("hidden");
   resultView.classList.add("hidden");
   quizView.classList.remove("hidden");
-  qs("#quizMeta").textContent = `${state.profile.city} / ${state.profile.persona} / ${state.questionSource === "ai" ? "AI题库" : "本地题库"}`;
-  setTopbarStatus(`${state.index + 1}/${state.questions.length}`);
+  qs("#posterOutput").classList.add("hidden");
+  qs("#quizMeta").textContent = `${state.profile.city} / ${state.profile.persona} / ${getQuestionSourceLabel()}`;
+  setTopbarStatus(getQuestionSourceLabel());
   document.documentElement.style.setProperty("--theme-color", state.profile.theme.color);
   renderQuestion();
-  sendEvent("start_test");
+  sendEvent("start_test", { source: state.questionSource });
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
@@ -904,24 +990,41 @@ function selectDailyQuestions(pool, count, seedText) {
 async function hydrateQuestionPool() {
   try {
     const response = await fetch(`/api/questions?theme=${encodeURIComponent(state.activeTheme)}&city=${encodeURIComponent(state.profile.city)}`);
-    if (!response.ok) return;
+    if (!response.ok) {
+      state.questionSource = "local";
+      setTopbarStatus("本地题库兜底");
+      return;
+    }
     const data = await response.json();
-    if (!Array.isArray(data.questions) || data.questions.length < 5) return;
+    if (!Array.isArray(data.questions) || data.questions.length < 5) {
+      state.questionSource = "local";
+      setTopbarStatus("本地题库兜底");
+      return;
+    }
     state.questions = selectDailyQuestions(data.questions, 5, `${dateKey}:${state.activeTheme}:ai:${state.profile.city}`);
     state.questionSource = data.source === "cache" ? "ai" : data.source || "ai";
+    setTopbarStatus(data.source === "deepseek" ? "今日题库已更新" : "今日题库已准备");
+    sendEvent("question_pool_source", { source: state.questionSource });
   } catch {
     state.questionSource = "local";
+    setTopbarStatus("本地题库兜底");
+    sendEvent("question_pool_source", { source: "local" });
   }
 }
 
 function renderQuestion() {
   const question = state.questions[state.index];
   questionCounter.textContent = `${state.index + 1}/${state.questions.length}`;
-  setTopbarStatus(`${state.index + 1}/${state.questions.length}`);
+  qs("#prevQuestionBtn").disabled = state.index === 0;
+  setTopbarStatus(getQuestionSourceLabel());
   progressBar.style.width = `${((state.index + 1) / state.questions.length) * 100}%`;
+  qs("#progressMood").textContent = buildProgressMood();
   questionDimension.textContent = question.dimension;
   questionTitle.textContent = question.title;
   optionGrid.innerHTML = "";
+  answerFeedback.classList.add("hidden");
+  state.questionStartedAt = Date.now();
+  sendEvent("question_view", { question: question.id, action: `${state.index + 1}/${state.questions.length}` });
 
   question.options.forEach((option) => {
     const button = document.createElement("button");
@@ -929,16 +1032,63 @@ function renderQuestion() {
     button.type = "button";
     button.textContent = option.label;
     button.addEventListener("click", () => {
-      state.answers.push({ question: question.id, dimension: question.dimension, ...option });
-      if (state.index === state.questions.length - 1) {
-        showResult();
-      } else {
-        state.index += 1;
-        renderQuestion();
-      }
+      handleAnswer(question, option);
     });
     optionGrid.appendChild(button);
   });
+}
+
+function handleAnswer(question, option) {
+  const elapsedMs = Date.now() - state.questionStartedAt;
+  state.answers[state.index] = { question: question.id, dimension: question.dimension, ...option };
+  answerFeedback.textContent = buildAnswerFeedback(option.value);
+  answerFeedback.classList.remove("hidden");
+  [...optionGrid.querySelectorAll("button")].forEach((button) => {
+    button.disabled = true;
+  });
+  sendEvent("answer_choice", {
+    question: question.id,
+    answer: option.label,
+    score: option.value,
+    elapsedMs,
+  });
+  window.setTimeout(() => {
+    if (state.index === state.questions.length - 1) {
+      showResult();
+    } else {
+      state.index += 1;
+      renderQuestion();
+    }
+  }, 520);
+}
+
+function goPreviousQuestion() {
+  if (state.index === 0) return;
+  state.answers = state.answers.slice(0, state.index - 1);
+  state.index -= 1;
+  sendEvent("answer_choice", { action: "go_previous", question: state.questions[state.index]?.id });
+  renderQuestion();
+}
+
+function getQuestionSourceLabel() {
+  if (state.questionSource === "deepseek") return "今日题库已更新";
+  if (state.questionSource === "ai" || state.questionSource === "cache") return "今日题库已准备";
+  return "本地题库兜底";
+}
+
+function buildProgressMood() {
+  const percent = (state.index + 1) / state.questions.length;
+  if (percent <= 0.25) return "正在扫描今日电量";
+  if (percent <= 0.5) return "系统开始闻到一点冒烟";
+  if (percent <= 0.8) return "报告正在成形";
+  return "马上生成可分享报告";
+}
+
+function buildAnswerFeedback(value) {
+  if (value >= 12) return `+${value} 电量回升`;
+  if (value >= 0) return `+${value} 维持运行`;
+  if (value <= -18) return `${value} 高压信号`;
+  return `${value} 轻度冒烟`;
 }
 
 function showResult() {
@@ -950,7 +1100,8 @@ function showResult() {
   renderPosterControls();
   updatePosterPreview();
   persistVisit(state.result);
-  sendEvent("complete_test", { score: state.result.score });
+  sendEvent("result_view", { score: state.result.score, scoreBucket: state.result.scoreBucket });
+  sendEvent("complete_test", { score: state.result.score, scoreBucket: state.result.scoreBucket });
   hydrateAiResult();
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
@@ -961,23 +1112,34 @@ function setTopbarStatus(text) {
 }
 
 function calculateResult() {
-  const raw = state.answers.reduce((sum, item) => sum + item.value, 48);
   const profile = state.profile;
+  const signature = buildAnswerSignature(state.answers);
   const dailySalt = hash(`${dateKey}-${profile.city}-${profile.persona}`) % 17;
-  const score = clamp(raw + dailySalt - 8, 3, 98);
+  const weighted = state.answers.reduce((sum, item, index) => {
+    const weight = 0.88 + (hash(`${dateKey}:${item.question}:${index}`) % 25) / 100;
+    return sum + Math.round(item.value * weight);
+  }, 48);
+  const rawScore = clamp(weighted + dailySalt - 8 + buildCombinationModifier(state.answers), 3, 98);
+  const score = clamp(rawScore, 17, 98);
   const tier = score >= 68 ? "high" : score >= 36 ? "mid" : "low";
-  const seed = hash(`${dateKey}-${profile.city}-${profile.persona}-${score}`);
-  const cityBeat = clamp(Math.round(score * 0.72 + (seed % 19) - 4), 1, 99);
-  const personaBeat = clamp(Math.round(score * 0.67 + (seed % 23) - 7), 1, 99);
+  const seed = hash(`${dateKey}-${profile.city}-${profile.persona}-${score}-${signature}`);
+  const rankSample = Number(state.stats.tests || 0);
+  const cityBeat = clamp(Math.round(score * 0.72 + (seed % 19) - 4), 3, 97);
+  const personaBeat = clamp(Math.round(score * 0.67 + (seed % 23) - 7), 3, 97);
   const title = score < 30 ? pick(titles.slice(2), seed) : profile.mood;
 
   return {
     ...profile,
+    rawScore,
     score,
+    scoreBucket: Math.floor(score / 10) * 10,
+    answerSignature: signature,
     tier,
     title,
     cityBeat,
     personaBeat,
+    rankSample,
+    personaTag: buildPersonaTag(profile, tier, seed),
     riskStamp: score >= 68 ? "状态在线" : score >= 36 ? "轻度冒烟" : profile.theme.risk,
     roast: pick(roasts[tier], seed + 3),
     advice: pick(advice[tier], seed + 9),
@@ -997,11 +1159,13 @@ function renderResult(result) {
   qs("#scoreRing").style.setProperty("--score-deg", `${result.score * 3.6}deg`);
   qs("#riskStamp").textContent = result.riskStamp;
   qs("#reportStatus").textContent = result.title;
+  qs("#personaTag").textContent = result.personaTag;
   qs("#reportRoast").textContent = result.roast;
   qs("#cityRank").textContent = `${result.cityBeat}%`;
-  qs("#cityRankLabel").textContent = `${result.city}用户中击败`;
+  qs("#cityRankLabel").textContent = `${result.city}今日同城样本击败`;
   qs("#personaRank").textContent = `${result.personaBeat}%`;
-  qs("#personaRankLabel").textContent = `${result.persona}中击败`;
+  qs("#personaRankLabel").textContent = `${result.persona}今日同类样本击败`;
+  qs("#rankFootnote").textContent = `今日样本 ${result.rankSample || state.stats.tests || "--"} 份，排名仅作娱乐比较`;
   qs("#causeText").textContent = result.cause;
   qs("#reviveText").textContent = result.revive;
   qs("#adviceText").textContent = result.advice;
@@ -1031,8 +1195,9 @@ function updateShareCopy() {
   qs("#shareCopy").textContent = state.result.shareLine;
 }
 
-function updatePosterPreview() {
+async function updatePosterPreview() {
   if (!state.result) return;
+  await ensureShareQr();
   const canvas = drawShareCanvas(state.result, state.posterTemplate);
   const preview = qs("#posterPreview");
   const ctx = preview.getContext("2d");
@@ -1045,9 +1210,11 @@ async function copyShareText() {
   const copied = await writeClipboard(text);
   if (copied) {
     showToast("分享文案已复制");
-    sendEvent("copy_share", { template: state.posterTemplate, tone: state.tone });
+    sendEvent("copy_share_success", { template: state.posterTemplate, tone: state.tone });
+    sendEvent("result_share_intent", { action: "copy_share" });
   } else {
     showToast(text);
+    sendEvent("copy_share_fail", { template: state.posterTemplate, tone: state.tone });
   }
 }
 
@@ -1079,20 +1246,30 @@ async function writeClipboard(text) {
   return copied;
 }
 
-function saveShareImage() {
-  const canvas = drawShareCanvas(state.result, state.posterTemplate);
-  const url = canvas.toDataURL("image/png");
-  const link = document.createElement("a");
-  link.download = `活着么-${dateKey}.png`;
-  link.href = url;
-  link.click();
-  showToast("报告图已生成");
-  sendEvent("save_poster", { template: state.posterTemplate, tone: state.tone });
+async function saveShareImage() {
+  try {
+    await ensureShareQr();
+    const canvas = drawShareCanvas(state.result, state.posterTemplate);
+    const url = canvas.toDataURL("image/png");
+    qs("#posterImage").src = url;
+    qs("#posterOutput").classList.remove("hidden");
+    const link = document.createElement("a");
+    link.download = `活着么-${dateKey}-${state.shareId}.png`;
+    link.href = url;
+    link.click();
+    showToast("报告图已生成，已打开长按保存图");
+    sendEvent("save_poster_success", { template: state.posterTemplate, tone: state.tone });
+    sendEvent("save_poster", { template: state.posterTemplate, tone: state.tone });
+    sendEvent("result_share_intent", { action: "save_poster" });
+  } catch {
+    showToast("保存受限，已保留预览图，可截图分享");
+    sendEvent("save_poster_fail", { template: state.posterTemplate, tone: state.tone });
+  }
 }
 
 function openPremiumModal() {
   premiumModal.classList.remove("hidden");
-  sendEvent("open_premium", { score: state.result?.score });
+  sendEvent("open_premium", { score: state.result?.score, scoreBucket: state.result?.scoreBucket });
 }
 
 function closePremiumModal() {
@@ -1100,10 +1277,40 @@ function closePremiumModal() {
 }
 
 function reservePremium() {
+  if (state.reservedPremium) return;
+  state.reservedPremium = true;
   localStorage.setItem("huozheme:premium-interest", new Date().toISOString());
+  const nextReservations = Number(state.stats.reservations || 0) + 1;
+  state.stats = { ...state.stats, reservations: nextReservations };
+  renderStats();
+  updatePremiumState();
   closePremiumModal();
-  showToast("已记录内测名额，隐藏结局先欠你一份。");
-  sendEvent("reserve_premium", { score: state.result?.score });
+  showToast("已锁定 9.9 内测价，隐藏结局候补资格保留。");
+  sendEvent("lock_price_click", { score: state.result?.score, scoreBucket: state.result?.scoreBucket });
+  sendEvent("reserve_premium", { score: state.result?.score, scoreBucket: state.result?.scoreBucket });
+}
+
+async function copyPremiumCode() {
+  const code = `活着么内测口令：${state.shareId.toUpperCase()}，我想解锁年度精神账单`;
+  const copied = await writeClipboard(code);
+  showToast(copied ? "内测口令已复制" : code);
+  sendEvent("payment_provider_click", { action: "copy_premium_code" });
+}
+
+function openPaymentProvider() {
+  showToast("微信 9.9 通道已预留，先为你锁定今日内测价。");
+  sendEvent("payment_provider_click", { action: "wechat_reserved", score: state.result?.score });
+}
+
+function updatePremiumState() {
+  state.reservedPremium = Boolean(localStorage.getItem("huozheme:premium-interest"));
+  const premiumBtn = qs("#premiumBtn");
+  const reserveBtn = qs("#reservePremiumBtn");
+  if (premiumBtn) premiumBtn.textContent = state.reservedPremium ? "已锁定 9.9 内测价" : "9.9 解锁隐藏结局";
+  if (reserveBtn) {
+    reserveBtn.textContent = state.reservedPremium ? "已锁定今日内测价" : "锁定 9.9 内测价";
+    reserveBtn.disabled = state.reservedPremium;
+  }
 }
 
 function getShareLine(result) {
@@ -1122,6 +1329,49 @@ function buildShareLine(score, city, persona, tier) {
     `刚测完《活着么》：${score}/100。${base}`,
   ];
   return variants[state.copySeed % variants.length];
+}
+
+function buildShareUrl() {
+  const url = new URL(location.href);
+  url.hash = "";
+  url.search = "";
+  url.searchParams.set("s", state.shareId);
+  url.searchParams.set("from", "poster");
+  return url.toString();
+}
+
+function buildDisplayLink() {
+  const url = new URL(buildShareUrl());
+  return `${url.host}${url.pathname}?s=${state.shareId}`;
+}
+
+async function ensureShareQr() {
+  if (state.qrImage || !state.result) return;
+  try {
+    const controller = new AbortController();
+    const timer = window.setTimeout(() => controller.abort(), 1400);
+    const response = await fetch(`/api/qr?data=${encodeURIComponent(buildShareUrl())}`, {
+      signal: controller.signal,
+    });
+    window.clearTimeout(timer);
+    if (!response.ok) return;
+    const data = await response.json();
+    if (!data.dataUrl) return;
+    state.qrDataUrl = data.dataUrl;
+    state.qrImage = await loadImage(data.dataUrl);
+  } catch {
+    state.qrDataUrl = "";
+    state.qrImage = null;
+  }
+}
+
+function loadImage(src) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = reject;
+    image.src = src;
+  });
 }
 
 async function hydrateAiResult() {
@@ -1147,10 +1397,12 @@ async function hydrateAiResult() {
         })),
         baseResult: {
           score: state.result.score,
+          rawScore: state.result.rawScore,
           tier: state.result.tier,
           title: state.result.title,
           cause: state.result.cause,
           revive: state.result.revive,
+          answerSignature: state.result.answerSignature,
         },
       }),
     });
@@ -1159,14 +1411,17 @@ async function hydrateAiResult() {
     const data = await response.json();
     if (!data.result) {
       state.aiStatus = "fallback";
+      sendEvent("ai_result_fallback", { scoreBucket: state.result.scoreBucket });
       return;
     }
 
     applyAiResult(data.result);
     state.aiStatus = data.source || "deepseek";
+    sendEvent("ai_result_applied", { source: state.aiStatus, scoreBucket: state.result.scoreBucket });
     showToast(data.source === "cache" ? "已加载今日 AI 内容池" : "AI 报告已刷新");
   } catch {
     state.aiStatus = "fallback";
+    sendEvent("ai_result_fallback", { scoreBucket: state.result?.scoreBucket });
   }
 }
 
@@ -1188,11 +1443,22 @@ function applyAiResult(aiResult) {
 function sendEvent(type, extra = {}) {
   const payload = {
     type,
-    theme: state.profile?.themeId,
-    city: state.profile?.city,
+    sessionId: state.sessionId,
+    shareId: state.shareId,
+    entryShareId: state.entryShareId,
+    theme: extra.theme || state.profile?.themeId || state.activeTheme,
+    city: extra.city || state.profile?.city || qs("#city")?.value,
     score: extra.score ?? state.result?.score,
+    scoreBucket: extra.scoreBucket ?? state.result?.scoreBucket,
     template: extra.template,
     tone: extra.tone,
+    source: extra.source,
+    action: extra.action,
+    question: extra.question,
+    answer: extra.answer,
+    elapsedMs: extra.elapsedMs,
+    referrer: document.referrer,
+    path: location.pathname,
     clientTime: new Date().toISOString(),
   };
 
@@ -1215,8 +1481,8 @@ function sendEvent(type, extra = {}) {
 }
 
 function buildShareText(result) {
-  const baseUrl = `${location.origin}${location.pathname}`;
-  return `《活着么》今日精神存活报告\n指数：${result.score}/100\n状态：${result.title}\n今日死因：${result.cause}\n${result.shareLine}\n${baseUrl}`;
+  const shareUrl = buildShareUrl();
+  return `《活着么》今日精神存活报告\n指数：${result.score}/100\n人设：${result.personaTag}\n今日故障点：${result.cause}\n${result.shareLine}\n${shareUrl}`;
 }
 
 function drawShareCanvas(result, template = "classic") {
@@ -1245,12 +1511,14 @@ function drawShareCanvas(result, template = "classic") {
   ctx.font = "700 34px system-ui, sans-serif";
   ctx.fillText(`${result.persona}精神存活报告`, 72, 104);
   ctx.textAlign = "right";
-  ctx.fillText(formatDate(new Date()), w - 72, 104);
+  ctx.fillText(`${formatDate(new Date())} #${state.shareId.toUpperCase()}`, w - 72, 104);
   ctx.textAlign = "left";
 
   ctx.fillStyle = "#f5f2e8";
   ctx.font = template === "social" ? "950 76px system-ui, sans-serif" : "950 86px system-ui, sans-serif";
   wrapText(ctx, result.title, 72, 245, w - 144, 98, 2);
+
+  drawPill(ctx, 76, 342, result.personaTag, result.theme.color);
 
   drawScore(ctx, result.score, 540, 510, 158, result.theme.color);
   drawStamp(ctx, result.riskStamp, 710, 360);
@@ -1259,24 +1527,25 @@ function drawShareCanvas(result, template = "classic") {
   ctx.font = "500 40px system-ui, sans-serif";
   wrapText(ctx, result.roast, 110, 780, w - 220, 58, 3);
 
-  drawMetric(ctx, 92, 955, 420, 170, `${result.cityBeat}%`, `${result.city}用户中击败`, result.theme.color);
-  drawMetric(ctx, 568, 955, 420, 170, `${result.personaBeat}%`, `${result.persona}中击败`, result.theme.color);
+  drawMetric(ctx, 92, 955, 420, 170, `${result.cityBeat}%`, `${result.city}同城样本击败`, result.theme.color);
+  drawMetric(ctx, 568, 955, 420, 170, `${result.personaBeat}%`, `${result.persona}同类样本击败`, result.theme.color);
 
-  drawInfoBox(ctx, 92, 1140, 420, 118, "今日死因", result.cause);
+  drawInfoBox(ctx, 92, 1140, 420, 118, "今日故障点", result.cause);
   drawInfoBox(ctx, 568, 1140, 420, 118, "复活方式", result.revive);
 
   ctx.fillStyle = result.theme.color;
   ctx.font = "900 34px system-ui, sans-serif";
-  ctx.fillText("适合发出去的那句", 72, 1308);
+  ctx.fillText("适合发出去的那句", 72, 1300);
   ctx.fillStyle = "#f2efd7";
   ctx.font = "800 32px system-ui, sans-serif";
-  wrapText(ctx, result.shareLine, 72, 1352, w - 144, 40, 2);
+  wrapText(ctx, result.shareLine, 72, 1344, 690, 40, 2);
+  drawQrBox(ctx, 824, 1264, 164, result.theme.color);
 
   ctx.fillStyle = "#a7a8aa";
-  ctx.font = "700 28px system-ui, sans-serif";
-  ctx.fillText("huozheme.today", 72, h - 24);
+  ctx.font = "700 24px system-ui, sans-serif";
+  ctx.fillText(buildDisplayLink(), 72, h - 24);
   ctx.textAlign = "right";
-  ctx.fillText("长按测试：活着么", w - 72, h - 24);
+  ctx.fillText("扫码回测：活着么", w - 72, h - 24);
   ctx.textAlign = "left";
 
   return canvas;
@@ -1302,6 +1571,51 @@ function buildDiagnosis(score, seed) {
     { label: "离线风险", value: `${clamp(103 - score + (seed % 8), 6, 98)}%`, percent: clamp(103 - score + (seed % 8), 6, 98) },
     { label: "复活概率", value: `${clamp(score - 7 + (seed % 18), 4, 96)}%`, percent: clamp(score - 7 + (seed % 18), 4, 96) },
   ];
+}
+
+function buildAnswerSignature(answers) {
+  return answers.map((item) => `${item.question}:${item.value}`).join("|");
+}
+
+function buildCombinationModifier(answers) {
+  const negatives = answers.filter((item) => item.value <= -10).length;
+  const positives = answers.filter((item) => item.value >= 12).length;
+  const dimensions = answers
+    .filter((item) => item.value <= -10)
+    .map((item) => item.dimension)
+    .join("|");
+  let modifier = 0;
+  if (negatives >= 4) modifier -= 6;
+  if (positives >= 4) modifier += 5;
+  if (/睡|夜|作息|昼夜/.test(dimensions) && /余额|现金|生活费|收款/.test(dimensions)) modifier -= 4;
+  if (/社交|人类|联系/.test(dimensions) && negatives >= 3) modifier -= 3;
+  return modifier;
+}
+
+function buildPersonaTag(profile, tier, seed) {
+  const map = {
+    worker: {
+      high: ["准点下班幻想家", "会议免疫样本", "工位清醒派"],
+      mid: ["轻度冒烟打工人", "工位低亮度运行者", "消息夹缝生存者"],
+      low: ["通知过敏样本", "工位省电模式", "周报反噬幸存者"],
+    },
+    student: {
+      high: ["DDL 反杀样本", "早八清醒派", "食堂运气持有者"],
+      mid: ["课表夹缝生存者", "轻度拖延研究员", "宿舍低电量样本"],
+      low: ["DDL 堆叠样本", "早八省电模式", "小组作业承重墙"],
+    },
+    solo: {
+      high: ["房间秩序维护者", "热饭续命样本", "独居高亮度人类"],
+      mid: ["房间静音观察员", "外卖备注交流者", "生活低速运行者"],
+      low: ["深夜脑内会议主持", "房间省电模式", "开灯延迟样本"],
+    },
+    freelance: {
+      high: ["尾款已到账样本", "边界感持有者", "报价底气在线"],
+      mid: ["客户消息缓冲区", "现金流观察员", "自由但轻度焦虑"],
+      low: ["改稿循环样本", "边界消失模式", "尾款召唤师"],
+    },
+  };
+  return pick(map[profile.themeId]?.[tier] || map.worker.mid, seed);
 }
 
 function buildPremiumPeek(profile, seed) {
@@ -1406,6 +1720,65 @@ function drawInfoBox(ctx, x, y, width, height, label, value) {
   wrapText(ctx, value, x + 28, y + 88, width - 56, 38, 1);
 }
 
+function drawPill(ctx, x, y, text, color) {
+  ctx.save();
+  ctx.font = "900 30px system-ui, sans-serif";
+  const width = Math.min(520, ctx.measureText(text).width + 48);
+  roundRect(ctx, x, y, width, 56, 28);
+  ctx.fillStyle = hexToRgba(color, 0.16);
+  ctx.fill();
+  ctx.strokeStyle = hexToRgba(color, 0.7);
+  ctx.stroke();
+  ctx.fillStyle = color;
+  ctx.fillText(text, x + 24, y + 37);
+  ctx.restore();
+}
+
+function drawQrBox(ctx, x, y, size, color) {
+  ctx.save();
+  roundRect(ctx, x, y, size, size, 20);
+  ctx.fillStyle = "#f8f4e8";
+  ctx.fill();
+  ctx.strokeStyle = hexToRgba(color, 0.72);
+  ctx.lineWidth = 6;
+  ctx.stroke();
+  if (state.qrImage) {
+    ctx.drawImage(state.qrImage, x + 16, y + 16, size - 32, size - 32);
+  } else {
+    drawPseudoQr(ctx, x + 18, y + 18, size - 36, state.shareId);
+  }
+  ctx.restore();
+}
+
+function drawPseudoQr(ctx, x, y, size, seedText) {
+  const cells = 13;
+  const cell = size / cells;
+  ctx.fillStyle = "#111317";
+  drawFinder(ctx, x, y, cell);
+  drawFinder(ctx, x + cell * 9, y, cell);
+  drawFinder(ctx, x, y + cell * 9, cell);
+  for (let row = 0; row < cells; row += 1) {
+    for (let col = 0; col < cells; col += 1) {
+      const inFinder =
+        (row < 4 && col < 4) ||
+        (row < 4 && col > 8) ||
+        (row > 8 && col < 4);
+      if (inFinder) continue;
+      if (hash(`${seedText}:${row}:${col}`) % 3 === 0) {
+        ctx.fillRect(x + col * cell + 1, y + row * cell + 1, cell - 2, cell - 2);
+      }
+    }
+  }
+}
+
+function drawFinder(ctx, x, y, cell) {
+  ctx.fillRect(x, y, cell * 4, cell * 4);
+  ctx.fillStyle = "#f8f4e8";
+  ctx.fillRect(x + cell, y + cell, cell * 2, cell * 2);
+  ctx.fillStyle = "#111317";
+  ctx.fillRect(x + cell * 1.45, y + cell * 1.45, cell * 1.1, cell * 1.1);
+}
+
 function roundRect(ctx, x, y, width, height, radius) {
   ctx.beginPath();
   ctx.moveTo(x + radius, y);
@@ -1447,6 +1820,35 @@ function persistVisit(result) {
     time: Date.now(),
   });
   localStorage.setItem(key, JSON.stringify(list.slice(-20)));
+}
+
+function updateRailShare() {
+  setText("#railShareId", state.shareId.toUpperCase());
+  setText("#railShortLink", buildDisplayLink());
+}
+
+function renderMiniQr(root, seedText) {
+  if (!root) return;
+  root.innerHTML = "";
+  for (let index = 0; index < 81; index += 1) {
+    const dot = document.createElement("i");
+    const row = Math.floor(index / 9);
+    const col = index % 9;
+    const finder = (row < 3 && col < 3) || (row < 3 && col > 5) || (row > 5 && col < 3);
+    if (finder || hash(`${seedText}:${index}`) % 3 === 0) dot.className = "on";
+    root.appendChild(dot);
+  }
+}
+
+function setText(selector, value) {
+  const target = qs(selector);
+  if (target && value !== undefined && value !== null && value !== "") {
+    target.textContent = String(value);
+  }
+}
+
+function createId(prefix) {
+  return `${prefix}_${Date.now().toString(36)}${hash(`${prefix}:${new Date().toISOString()}:${Math.random()}`).toString(36).slice(0, 5)}`;
 }
 
 function pick(list, seed) {

@@ -12,11 +12,12 @@
   </head>
   <body>
     <main class="app-shell">
-      <header class="app-topbar">
-        <div class="topbar-brand"><span class="pulse-dot"></span><strong>活着么</strong></div>
-        <div class="topbar-status" id="topbarStatus">AI题库在线</div>
-      </header>
-      <section class="page hero-page" id="startView" data-testid="start-view">
+      <div class="phone-stage" aria-label="活着么 H5">
+        <header class="app-topbar">
+          <div class="topbar-brand"><span class="pulse-dot"></span><strong>活着么</strong></div>
+          <div class="topbar-status" id="topbarStatus">今日题库待生成</div>
+        </header>
+        <section class="page hero-page" id="startView" data-testid="start-view">
         <div class="scan-grid" aria-hidden="true"></div>
         <div class="hero-copy">
           <div class="brand-row">
@@ -54,7 +55,7 @@
               <span>今日状态</span>
               <select id="mood" required>
                 <option value="肉体上班，灵魂请假">肉体上班，灵魂请假</option>
-                <option value="电量 2%，还在硬撑">电量 2%，还在硬撑</option>
+                <option value="低电量运行，还在硬撑">低电量运行，还在硬撑</option>
                 <option value="看似正常，实则离线">看似正常，实则离线</option>
                 <option value="想发财，但先想睡觉">想发财，但先想睡觉</option>
                 <option value="心态稳定地崩着">心态稳定地崩着</option>
@@ -66,17 +67,18 @@
         </div>
 
         <aside class="hero-lab" aria-label="今日精神播报">
+          <div class="sample-note" id="sampleNote">今日样本由冷启动基数与真实完成量累加</div>
           <div class="live-board">
             <div>
-              <span>今日检测</span>
+              <span>今日样本</span>
               <strong id="todayTests">--</strong>
             </div>
             <div>
-              <span>平均存活</span>
+              <span>平均指数</span>
               <strong id="todayAverage">--</strong>
             </div>
             <div>
-              <span>异常城市</span>
+              <span>高压城市</span>
               <strong id="hotCity">--</strong>
             </div>
           </div>
@@ -86,12 +88,12 @@
               <span>报告样张</span>
               <span id="sampleDate"></span>
             </div>
-            <div class="sample-score">37</div>
-            <h2>低电量营业中</h2>
-            <p>系统检测到你正在以最低亮度运行人生。</p>
+            <div class="sample-score" id="sampleScore">37</div>
+            <h2 id="sampleTitle">低电量营业中</h2>
+            <p id="sampleText">系统检测到你正在以最低亮度运行人生。</p>
             <div class="sample-tags">
-              <span>上海打工人</span>
-              <span>击败 12%</span>
+              <span id="samplePersona">上海打工人</span>
+              <span id="sampleBeat">今日同城样本击败 12%</span>
             </div>
           </div>
 
@@ -119,22 +121,27 @@
             </div>
           </div>
         </aside>
-      </section>
+        </section>
 
-      <section class="page quiz-page hidden" id="quizView" data-testid="quiz-view" aria-live="polite">
+        <section class="page quiz-page hidden" id="quizView" data-testid="quiz-view" aria-live="polite">
         <div class="quiz-card">
           <div class="quiz-topline">
-            <span id="questionCounter">1/5</span>
+            <button class="back-action" id="prevQuestionBtn" type="button" disabled>上一题</button>
             <span id="quizMeta">今日剧本</span>
           </div>
+          <div class="progress-copy">
+            <span id="questionCounter">1/5</span>
+            <strong id="progressMood">正在扫描今日电量</strong>
+          </div>
           <div class="progress-track"><div class="progress-bar" id="progressBar"></div></div>
+          <div class="answer-feedback hidden" id="answerFeedback"></div>
           <p class="question-dimension" id="questionDimension"></p>
           <h2 id="questionTitle"></h2>
           <div class="option-grid" id="optionGrid"></div>
         </div>
-      </section>
+        </section>
 
-      <section class="page result-page hidden" id="resultView" data-testid="result-view">
+        <section class="page result-page hidden" id="resultView" data-testid="result-view">
         <div class="report-card" id="reportCard">
           <div class="report-header">
             <span id="reportTheme">今日精神存活报告</span>
@@ -148,6 +155,7 @@
             <div class="risk-stamp" id="riskStamp"></div>
           </div>
           <h2 id="reportStatus"></h2>
+          <div class="persona-tag" id="personaTag"></div>
           <p id="reportRoast"></p>
           <div class="rank-grid">
             <div>
@@ -159,9 +167,10 @@
               <span id="personaRankLabel"></span>
             </div>
           </div>
+          <div class="rank-footnote" id="rankFootnote"></div>
           <div class="signal-list">
             <div>
-              <span>今日死因</span>
+              <span>今日故障点</span>
               <strong id="causeText"></strong>
             </div>
             <div>
@@ -193,6 +202,10 @@
             <div class="poster-preview-shell">
               <canvas id="posterPreview" width="540" height="720" role="img" aria-label="分享图预览"></canvas>
             </div>
+            <div class="poster-output hidden" id="posterOutput">
+              <img id="posterImage" alt="已生成的分享海报" />
+              <span>长按图片可保存，复制文案会带回流链接。</span>
+            </div>
             <div class="template-switch" id="templateSwitch" aria-label="分享图模板"></div>
             <div class="tone-switch" id="toneSwitch" aria-label="毒舌强度"></div>
           </div>
@@ -213,23 +226,23 @@
             </div>
             <div class="premium-proof">
               <span id="premiumCount">--</span>
-              <strong>人今天预约了内测</strong>
+              <strong>人今天锁定内测价</strong>
             </div>
-            <button id="premiumBtn" type="button">预约 9.9 内测</button>
+            <button id="premiumBtn" type="button">9.9 解锁隐藏结局</button>
           </div>
           <div class="return-card">
             <span>明日刷新</span>
             <strong id="tomorrowHook"></strong>
           </div>
         </aside>
-      </section>
+        </section>
 
-      <section class="modal-layer hidden" id="premiumModal" aria-modal="true" role="dialog" aria-labelledby="premiumTitle">
+        <section class="modal-layer hidden" id="premiumModal" aria-modal="true" role="dialog" aria-labelledby="premiumTitle">
         <div class="modal-card">
           <button class="modal-close" id="closePremiumBtn" type="button" aria-label="关闭">×</button>
-          <span class="modal-kicker">内测预约</span>
-          <h2 id="premiumTitle">隐藏结局开放内测</h2>
-          <p>当前版本不会真实扣款。预约后会记录你的兴趣，后续接入支付时优先开放 9.9 内测价。</p>
+          <span class="modal-kicker">9.9 内测价</span>
+          <h2 id="premiumTitle">锁定隐藏结局</h2>
+          <p>年度精神账单、黑化主题卡和朋友圈文案加强版进入候补开放。锁定后保留今日内测价与优先解锁资格。</p>
           <div class="premium-preview-grid">
             <div>
               <span>年度崩溃热力图</span>
@@ -249,11 +262,47 @@
             <span>黑化主题卡</span>
             <span>朋友圈文案加强版</span>
           </div>
-          <button class="primary-action" id="reservePremiumBtn" type="button">记录我的内测名额</button>
+          <div class="modal-actions">
+            <button class="primary-action" id="reservePremiumBtn" type="button">锁定 9.9 内测价</button>
+            <button class="ghost-action" id="copyCodeBtn" type="button">复制内测口令</button>
+            <button class="ghost-action" id="wechatPayBtn" type="button">微信 9.9 通道</button>
+          </div>
         </div>
-      </section>
+        </section>
 
-      <canvas id="shareCanvas" width="1080" height="1440" aria-hidden="true"></canvas>
+        <canvas id="shareCanvas" width="1080" height="1440" aria-hidden="true"></canvas>
+      </div>
+
+      <aside class="desktop-rail" aria-label="桌面预览">
+        <div class="rail-kicker">HUOZHEME LIVE</div>
+        <h2>手机端 H5 已就位，桌面端展示实时热度与回流入口。</h2>
+        <div class="rail-grid">
+          <div>
+            <span>今日样本</span>
+            <strong id="railTests">--</strong>
+          </div>
+          <div>
+            <span>保存海报</span>
+            <strong id="railSaves">--</strong>
+          </div>
+          <div>
+            <span>锁价人数</span>
+            <strong id="railReservations">--</strong>
+          </div>
+        </div>
+        <div class="rail-qr-card">
+          <div class="mini-qr" id="desktopQr" aria-hidden="true"></div>
+          <div>
+            <span>分享回流编号</span>
+            <strong id="railShareId">--</strong>
+            <p id="railShortLink">huozheme.today</p>
+          </div>
+        </div>
+        <div class="rail-hooks">
+          <span>今日付费诱因</span>
+          <strong>年度精神账单 + 黑化主题卡 + 朋友圈加强版</strong>
+        </div>
+      </aside>
     </main>
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>

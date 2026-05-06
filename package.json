@@ -5,7 +5,7 @@
   "description": "活着么：今日精神存活指数 H5",
   "scripts": {
     "dev": "python3 -m http.server 4173",
-    "check": "node --check app.js && node --check api/generate.js && node --check api/questions.js && node --check api/stats.js && node --check api/event.js && node --check api/_lib/upstash.js"
+    "check": "node --check app.js && node --check api/generate.js && node --check api/questions.js && node --check api/stats.js && node --check api/event.js && node --check api/qr.js && node --check api/_lib/upstash.js"
   },
   "keywords": [
     "h5",
@@ -13,5 +13,8 @@
     "quiz",
     "share-card"
   ],
-  "license": "UNLICENSED"
+  "license": "UNLICENSED",
+  "dependencies": {
+    "qrcode": "^1.5.4"
+  }
 }
