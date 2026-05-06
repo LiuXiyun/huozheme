@@ -763,7 +763,7 @@ function init() {
   hydrateStats();
   qs("#sampleDate").textContent = formatDate(new Date());
   setTopbarStatus("今日题库待生成");
-  renderMiniQr(qs("#desktopQr"), state.shareId);
+  renderDesktopQr();
   updateRailShare();
   updateSampleTheme();
   updatePremiumState();
@@ -819,6 +819,7 @@ function init() {
   });
 
   qs("#copyShareBtn").addEventListener("click", copyShareText);
+  qs("#desktopCopyBtn").addEventListener("click", copyDesktopLink);
   qs("#saveImageBtn").addEventListener("click", saveShareImage);
   qs("#premiumBtn").addEventListener("click", openPremiumModal);
   qs("#closePremiumBtn").addEventListener("click", closePremiumModal);
@@ -1331,17 +1332,17 @@ function buildShareLine(score, city, persona, tier) {
   return variants[state.copySeed % variants.length];
 }
 
-function buildShareUrl() {
+function buildShareUrl(source = "poster") {
   const url = new URL(location.href);
   url.hash = "";
   url.search = "";
   url.searchParams.set("s", state.shareId);
-  url.searchParams.set("from", "poster");
+  url.searchParams.set("from", source);
   return url.toString();
 }
 
 function buildDisplayLink() {
-  const url = new URL(buildShareUrl());
+  const url = new URL(buildShareUrl("desktop"));
   return `${url.host}${url.pathname}?s=${state.shareId}`;
 }
 
@@ -1350,7 +1351,7 @@ async function ensureShareQr() {
   try {
     const controller = new AbortController();
     const timer = window.setTimeout(() => controller.abort(), 1400);
-    const response = await fetch(`/api/qr?data=${encodeURIComponent(buildShareUrl())}`, {
+    const response = await fetch(`/api/qr?data=${encodeURIComponent(buildShareUrl("poster"))}`, {
       signal: controller.signal,
     });
     window.clearTimeout(timer);
@@ -1363,6 +1364,31 @@ async function ensureShareQr() {
     state.qrDataUrl = "";
     state.qrImage = null;
   }
+}
+
+async function renderDesktopQr() {
+  const root = qs("#desktopQr");
+  renderMiniQr(root, state.shareId);
+  try {
+    const response = await fetch(`/api/qr?data=${encodeURIComponent(buildShareUrl("desktop"))}`);
+    if (!response.ok) return;
+    const data = await response.json();
+    if (!data.dataUrl) return;
+    root.classList.add("has-image");
+    root.innerHTML = `<img src="${data.dataUrl}" alt="当前页面分享二维码" />`;
+  } catch {
+    renderMiniQr(root, state.shareId);
+  }
+}
+
+async function copyDesktopLink() {
+  const link = buildShareUrl("desktop");
+  const copied = await writeClipboard(link);
+  showToast(copied ? "链接已复制，可以发给朋友了" : link);
+  sendEvent(copied ? "copy_share_success" : "copy_share_fail", {
+    action: "desktop_copy_link",
+    source: "desktop_rail",
+  });
 }
 
 function loadImage(src) {
@@ -1829,6 +1855,7 @@ function updateRailShare() {
 
 function renderMiniQr(root, seedText) {
   if (!root) return;
+  root.classList.remove("has-image");
   root.innerHTML = "";
   for (let index = 0; index < 81; index += 1) {
     const dot = document.createElement("i");

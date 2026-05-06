@@ -273,9 +273,9 @@
         <canvas id="shareCanvas" width="1080" height="1440" aria-hidden="true"></canvas>
       </div>
 
-      <aside class="desktop-rail" aria-label="桌面预览">
-        <div class="rail-kicker">HUOZHEME LIVE</div>
-        <h2>手机端 H5 已就位，桌面端展示实时热度与回流入口。</h2>
+      <aside class="desktop-rail" aria-label="今日热度">
+        <div class="rail-kicker">今日热度</div>
+        <h2>测一下精神存活指数，生成一张能发出去的状态报告。</h2>
         <div class="rail-grid">
           <div>
             <span>今日样本</span>
@@ -291,16 +291,17 @@
           </div>
         </div>
         <div class="rail-qr-card">
-          <div class="mini-qr" id="desktopQr" aria-hidden="true"></div>
+          <div class="mini-qr" id="desktopQr" aria-label="当前页面分享二维码"></div>
           <div>
-            <span>分享回流编号</span>
+            <span>手机打开 / 发给朋友</span>
             <strong id="railShareId">--</strong>
             <p id="railShortLink">huozheme.today</p>
+            <button class="tiny-action" id="desktopCopyBtn" type="button">复制链接</button>
           </div>
         </div>
         <div class="rail-hooks">
-          <span>今日付费诱因</span>
-          <strong>年度精神账单 + 黑化主题卡 + 朋友圈加强版</strong>
+          <span>测完会得到</span>
+          <strong>存活指数、人设标签、报告图和隐藏结局入口</strong>
         </div>
       </aside>
     </main>
