@@ -9,7 +9,9 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Deploy on ECS
+      - uses: actions/checkout@v4
+
+      - name: Upload and deploy on ECS
         env:
           ECS_HOST: ${{ secrets.ECS_HOST }}
           ECS_USER: ${{ secrets.ECS_USER }}
@@ -29,4 +31,13 @@ jobs:
           printf '%s\n' "$ECS_SSH_KEY" > ~/.ssh/ecs_key
           chmod 600 ~/.ssh/ecs_key
           ssh-keyscan -p "$ECS_PORT" -H "$ECS_HOST" >> ~/.ssh/known_hosts
-          ssh -i ~/.ssh/ecs_key -p "$ECS_PORT" "$ECS_USER@$ECS_HOST" "APP_DIR='$APP_DIR' bash '$APP_DIR/scripts/server-deploy.sh'"
+          tar \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='node_modules' \
+            --exclude='.env' \
+            --exclude='.env.*' \
+            -czf /tmp/huozheme-release.tgz .
+          ssh -i ~/.ssh/ecs_key -p "$ECS_PORT" "$ECS_USER@$ECS_HOST" "mkdir -p '$APP_DIR'"
+          scp -i ~/.ssh/ecs_key -P "$ECS_PORT" /tmp/huozheme-release.tgz "$ECS_USER@$ECS_HOST:/tmp/huozheme-release.tgz"
+          ssh -i ~/.ssh/ecs_key -p "$ECS_PORT" "$ECS_USER@$ECS_HOST" "APP_DIR='$APP_DIR' bash -lc 'rm -rf \"\$APP_DIR\"/* && tar -xzf /tmp/huozheme-release.tgz -C \"\$APP_DIR\" && bash \"\$APP_DIR/scripts/server-deploy.sh\"'"

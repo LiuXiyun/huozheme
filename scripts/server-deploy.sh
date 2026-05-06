@@ -6,8 +6,10 @@ BRANCH="${BRANCH:-main}"
 
 cd "$APP_DIR"
 
-git fetch origin "$BRANCH"
-git reset --hard "origin/$BRANCH"
+if [ -d .git ]; then
+  git fetch origin "$BRANCH"
+  git reset --hard "origin/$BRANCH"
+fi
 
 npm ci --omit=dev
 npm run check

@@ -62,12 +62,10 @@ ECS_APP_DIR=/var/www/huozheme
 ECS_SSH_KEY=服务器可登录私钥内容
 ```
 
-之后每次 push 到 `main`，`.github/workflows/deploy-ecs.yml` 会在服务器执行：
+之后每次 push 到 `main`，`.github/workflows/deploy-ecs.yml` 会把当前仓库打包上传到服务器，然后执行：
 
 ```bash
 cd /var/www/huozheme
-git fetch origin main
-git reset --hard origin/main
 npm ci --omit=dev
 npm run check
 pm2 reload ecosystem.config.cjs --env production
