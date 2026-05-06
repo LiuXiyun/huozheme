@@ -47,7 +47,7 @@ pm2 reload huozheme
 访问：
 
 ```text
-http://47.110.49.198/
+https://convertos.cn/
 ```
 
 ## 2. GitHub 自动部署
@@ -73,7 +73,15 @@ pm2 reload ecosystem.config.cjs --env production
 
 ## 3. 域名和 HTTPS
 
-如果你有域名，把 A 记录指向：
+当前生产域名：
+
+```text
+convertos.cn -> 47.110.49.198
+```
+
+注意：大陆地域 ECS 使用域名对外提供 Web 服务时，域名需要完成 ICP 备案。未备案时，即使 DNS、Nginx 和项目都配置正确，公网访问也可能出现 `Non-compliance ICP Filing` 拦截页。
+
+如果要更换域名，把 A 记录指向：
 
 ```text
 47.110.49.198
@@ -88,14 +96,14 @@ server_name _;
 改成你的域名，例如：
 
 ```nginx
-server_name huozheme.com www.huozheme.com;
+server_name huozheme.com;
 ```
 
 安装证书可以用：
 
 ```bash
 dnf install -y certbot python3-certbot-nginx || yum install -y certbot python3-certbot-nginx
-certbot --nginx -d huozheme.com -d www.huozheme.com
+certbot --nginx -d huozheme.com
 ```
 
 ## 4. 常用命令
