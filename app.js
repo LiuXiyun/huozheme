@@ -16,6 +16,8 @@ const state = {
   sessionId: createId("sess"),
   shareId: "",
   entryShareId: "",
+  entryTypeCode: "",
+  entryVariant: "",
   questionStartedAt: 0,
   qrDataUrl: "",
   qrImage: null,
@@ -32,6 +34,53 @@ const toneOptions = {
   soft: "轻吐槽",
   sharp: "够真实",
   black: "黑化版",
+};
+
+const identityAxes = [
+  { key: "energy", letters: ["H", "L"], label: "能量", left: "高亮运行", right: "低亮省电" },
+  { key: "trigger", letters: ["M", "D"], label: "触发", left: "消息触发", right: "截止触发" },
+  { key: "social", letters: ["O", "I"], label: "社交", left: "在线接梗", right: "隐身保命" },
+  { key: "recovery", letters: ["S", "R"], label: "回血", left: "睡眠回血", right: "出逃重启" },
+  { key: "control", letters: ["P", "F"], label: "控制", left: "计划控场", right: "随缘漂流" },
+  { key: "expression", letters: ["T", "N"], label: "表达", left: "吐槽外放", right: "内耗静音" },
+  { key: "coping", letters: ["A", "W"], label: "应对", left: "自救行动", right: "等待奇迹" },
+];
+
+const identityCoreNames = {
+  HMOS: "高亮接梗回血型",
+  HMOR: "高亮场控重启型",
+  HMIS: "高亮静音观察型",
+  HMIR: "高亮边界维护型",
+  HDOS: "任务反杀外放型",
+  HDOR: "任务冲刺重启型",
+  HDIS: "计划低噪幸存型",
+  HDIR: "独行赶工重启型",
+  LMOS: "低电量接梗型",
+  LMOR: "低亮营业重启型",
+  LMIS: "通知过敏省电型",
+  LMIR: "深夜静音逃生型",
+  LDOS: "拖延自嘲回血型",
+  LDOR: "截止线边缘型",
+  LDIS: "被窝防御样本型",
+  LDIR: "人生后台重启型",
+};
+
+const identitySuffixNames = {
+  PTA: "控场吐槽自救人",
+  PTW: "控场吐槽许愿人",
+  PNA: "计划静音自救人",
+  PNW: "计划静音许愿人",
+  FTA: "随缘吐槽自救人",
+  FTW: "随缘吐槽许愿人",
+  FNA: "随缘静音自救人",
+  FNW: "随缘静音许愿人",
+};
+
+const identityVariants = {
+  worker: ["工位低亮版", "会议后遗症版", "周报反噬版", "下班幻想版"],
+  student: ["DDL 呼吸版", "早八残影版", "宿舍低电量版", "小组作业承重版"],
+  solo: ["深夜离线版", "热饭续命版", "房间静音版", "外卖备注版"],
+  freelance: ["尾款召唤版", "客户天气版", "自律重启版", "现金流心跳版"],
 };
 
 const themes = {
@@ -787,6 +836,8 @@ const answerFeedback = qs("#answerFeedback");
 
 const urlParams = new URLSearchParams(window.location.search);
 state.entryShareId = urlParams.get("s") || urlParams.get("shareId") || "";
+state.entryTypeCode = normalizeTypeCode(urlParams.get("c") || "");
+state.entryVariant = sanitizeParam(urlParams.get("v") || "");
 state.shareId = createId("share");
 
 init();
@@ -800,6 +851,8 @@ function init() {
   setTopbarStatus("今日题库待生成");
   renderDesktopQr();
   updateRailShare();
+  renderEntryChallenge();
+  renderIdentityCodeProgress();
   updateThemeBrief();
   updateSampleTheme();
   updatePremiumState();
@@ -914,7 +967,7 @@ function updateThemeBrief() {
   const city = qs("#city")?.value || theme.hotLine;
   const mood = qs("#mood")?.value || "低电量运行，还在硬撑";
   setText("#briefTitle", `${city}${theme.label}今日精神巡检`);
-  setText("#briefCopy", `${content.copy} 当前状态：${mood}。`);
+  setText("#briefCopy", `${content.copy} 当前状态：${mood}。测完会生成 7 位精神人格代码。`);
   const briefTags = qs("#briefTags");
   if (briefTags) {
     briefTags.innerHTML = content.tags.map((tag) => `<span>${tag}</span>`).join("");
@@ -955,11 +1008,11 @@ function renderRailContent() {
   const theme = themes[state.activeTheme];
   const content = themeBriefs[state.activeTheme] || themeBriefs.worker;
   const city = qs("#city")?.value || theme.hotLine;
-  const average = state.stats.average || "--";
+  const average = clamp(Number(state.stats.average || 42), 17, 98);
   nowRoot.innerHTML = `
     <span>当前剧本</span>
     <strong>${city}${theme.label} / 平均指数 ${average}</strong>
-    <p>${content.copy}</p>
+    <p>${content.copy} 右侧二维码会携带人格代码，用于好友匹配回流。</p>
   `;
   feedRoot.innerHTML = content.railFeed
     .map(
@@ -1052,12 +1105,13 @@ function updateSampleTheme() {
 }
 
 function renderStats() {
+  const displayAverage = clamp(Number(state.stats.average || 42), 17, 98);
   setText("#todayTests", state.stats.tests);
-  setText("#todayAverage", state.stats.average);
+  setText("#todayAverage", displayAverage);
   setText("#hotCity", state.stats.activeCity || themes[state.activeTheme].hotLine);
   setText("#premiumCount", state.stats.reservations || 128 + (hash(dateKey) % 260));
   setText("#railTests", state.stats.tests);
-  setText("#railSaves", state.stats.saves);
+  setText("#railHotType", buildHotTypeCode());
   setText("#railReservations", state.stats.reservations);
   qs("#sampleNote").textContent =
     state.stats.source === "redis" ? "今日样本 = 冷启动基数 + 真实完成量" : "今日样本使用本地冷启动基数";
@@ -1129,6 +1183,7 @@ function renderQuestion() {
   questionDimension.textContent = question.dimension;
   setText("#questionFactor", question.dimension);
   setText("#questionHint", questionHints[state.index] || questionHints[0]);
+  renderIdentityCodeProgress(question);
   questionTitle.textContent = question.title;
   optionGrid.innerHTML = "";
   answerFeedback.classList.add("hidden");
@@ -1151,6 +1206,7 @@ function handleAnswer(question, option) {
   const elapsedMs = Date.now() - state.questionStartedAt;
   state.answers[state.index] = { question: question.id, dimension: question.dimension, ...option };
   answerFeedback.textContent = buildAnswerFeedback(option.value);
+  setText("#questionHint", buildAxisImpactText(question, option));
   answerFeedback.classList.remove("hidden");
   [...optionGrid.querySelectorAll("button")].forEach((button) => {
     button.disabled = true;
@@ -1187,10 +1243,10 @@ function getQuestionSourceLabel() {
 
 function buildProgressMood() {
   const percent = (state.index + 1) / state.questions.length;
-  if (percent <= 0.25) return "正在扫描今日电量";
-  if (percent <= 0.5) return "系统开始闻到一点冒烟";
-  if (percent <= 0.8) return "报告正在成形";
-  return "马上生成可分享报告";
+  if (percent <= 0.25) return "正在点亮人格代码";
+  if (percent <= 0.5) return "系统开始拼出你的类型";
+  if (percent <= 0.8) return "7 位代码正在成形";
+  return "马上生成可分享人格";
 }
 
 function buildAnswerFeedback(value) {
@@ -1236,6 +1292,8 @@ function calculateResult() {
   const cityBeat = clamp(Math.round(score * 0.72 + (seed % 19) - 4), 3, 97);
   const personaBeat = clamp(Math.round(score * 0.67 + (seed % 23) - 7), 3, 97);
   const title = score < 30 ? pick(titles.slice(2), seed) : profile.mood;
+  const identity = buildIdentityResult(profile, state.answers, score, tier, seed);
+  const match = buildIdentityMatch(identity.typeCode, state.entryTypeCode, seed);
 
   return {
     ...profile,
@@ -1248,25 +1306,33 @@ function calculateResult() {
     cityBeat,
     personaBeat,
     rankSample,
+    identity,
+    match,
     personaTag: buildPersonaTag(profile, tier, seed),
     riskStamp: score >= 68 ? "状态在线" : score >= 36 ? "轻度冒烟" : profile.theme.risk,
     roast: pick(roasts[tier], seed + 3),
     advice: pick(advice[tier], seed + 9),
     cause: pick(profile.theme.causes, seed + 14),
     revive: pick(profile.theme.revives, seed + 20),
-    premiumPeek: buildPremiumPeek(profile, seed),
+    premiumPeek: buildPremiumPeek(profile, seed, identity),
     diagnosis: buildDiagnosis(score, seed),
-    resultSlices: buildResultSlices(profile, score, tier, seed, state.answers),
-    shareReasons: buildShareReasons(profile, score, tier, seed),
-    challenge: buildChallenge(profile, score, tier, seed),
-    shareLine: buildShareLine(score, profile.city, profile.persona, tier),
+    resultSlices: buildResultSlices(profile, score, tier, seed, state.answers, identity),
+    shareReasons: buildShareReasons(profile, score, tier, seed, identity),
+    challenge: buildChallenge(profile, score, tier, seed, identity),
+    relations: buildIdentityRelations(identity, state.entryTypeCode, seed),
+    shareLine: buildShareLine(score, profile.city, profile.persona, tier, identity),
   };
 }
 
 function renderResult(result) {
   document.documentElement.style.setProperty("--theme-color", result.theme.color);
-  qs("#reportTheme").textContent = `${result.persona}精神存活报告`;
+  qs("#reportTheme").textContent = `${result.persona}精神存活人格`;
   qs("#reportDate").textContent = formatDate(new Date());
+  qs("#identityCode").textContent = result.identity.typeCode;
+  qs("#identityName").textContent = result.identity.typeName;
+  qs("#identityCopy").textContent = result.identity.explanation;
+  qs("#identityRarity").textContent = `${result.identity.rarity}%`;
+  qs("#identityTwins").textContent = `${result.identity.sameTypeCount}人`;
   qs("#scoreValue").textContent = result.score;
   qs("#scoreRing").style.setProperty("--score-deg", `${result.score * 3.6}deg`);
   qs("#riskStamp").textContent = result.riskStamp;
@@ -1284,6 +1350,9 @@ function renderResult(result) {
   qs("#premiumPeekText").textContent = result.premiumPeek;
   qs("#tomorrowHook").textContent = result.theme.tomorrow;
   renderDiagnosis(result);
+  renderIdentityAxes(result);
+  renderRelations(result);
+  renderMatch(result);
   renderResultExtras(result);
   updateShareCopy();
 }
@@ -1300,6 +1369,64 @@ function renderDiagnosis(result) {
       `,
     )
     .join("");
+}
+
+function renderIdentityAxes(result) {
+  const root = qs("#identityAxisGrid");
+  if (!root) return;
+  root.innerHTML = result.identity.axes
+    .map(
+      (axis) => `
+        <div class="identity-axis-item">
+          <span>${axis.label} ${axis.letters.join("/")}</span>
+          <strong>${axis.letter} ${axis.choice}</strong>
+          <div class="identity-axis-row">
+            <b>${axis.letters[0]}</b>
+            <div><i style="--axis: ${axis.percent}%"></i></div>
+            <b>${axis.letters[1]}</b>
+          </div>
+        </div>
+      `,
+    )
+    .join("");
+}
+
+function renderRelations(result) {
+  const root = qs("#relationPreview");
+  if (!root) return;
+  root.innerHTML = `
+    <div class="relation-head">
+      <span>免费关系预览</span>
+      <strong>${result.relations.free.title}</strong>
+      <p>${result.relations.free.copy}</p>
+    </div>
+    ${result.relations.locked
+      .map(
+        (item) => `
+          <div class="relation-locked">
+            <span>${item.label}</span>
+            <strong>解锁后查看</strong>
+          </div>
+        `,
+      )
+      .join("")}
+  `;
+}
+
+function renderMatch(result) {
+  const root = qs("#matchCard");
+  if (!root) return;
+  if (!result.match) {
+    root.classList.add("hidden");
+    root.innerHTML = "";
+    return;
+  }
+  root.classList.remove("hidden");
+  root.innerHTML = `
+    <span>好友匹配完成</span>
+    <strong>${result.match.score}% / ${result.match.title}</strong>
+    <p>${result.match.copy}</p>
+  `;
 }
 
 function renderResultExtras(result) {
@@ -1323,7 +1450,7 @@ function renderResultExtras(result) {
     reasonsRoot.innerHTML = `
       <div class="insight-head">
         <span>为什么值得发</span>
-        <strong>${result.personaTag}</strong>
+        <strong>${result.identity.typeCode} / ${result.identity.coreName}</strong>
       </div>
       ${result.shareReasons
         .map(
@@ -1465,7 +1592,7 @@ function updatePremiumState() {
   state.reservedPremium = Boolean(localStorage.getItem("huozheme:premium-interest"));
   const premiumBtn = qs("#premiumBtn");
   const reserveBtn = qs("#reservePremiumBtn");
-  if (premiumBtn) premiumBtn.textContent = state.reservedPremium ? "已锁定 9.9 内测价" : "9.9 解锁隐藏结局";
+  if (premiumBtn) premiumBtn.textContent = state.reservedPremium ? "已锁定 9.9 内测价" : "9.9 解锁关系图谱";
   if (reserveBtn) {
     reserveBtn.textContent = state.reservedPremium ? "已锁定今日内测价" : "锁定 9.9 内测价";
     reserveBtn.disabled = state.reservedPremium;
@@ -1477,11 +1604,19 @@ function getShareLine(result) {
   if (Array.isArray(aiLines) && aiLines.length) {
     return aiLines[state.copySeed % aiLines.length];
   }
-  return buildShareLine(result.score, result.city, result.persona, result.tier);
+  return buildShareLine(result.score, result.city, result.persona, result.tier, result.identity);
 }
 
-function buildShareLine(score, city, persona, tier) {
+function buildShareLine(score, city, persona, tier, identity) {
   const base = shareLines[state.tone][tier];
+  if (identity) {
+    const variants = [
+      `我是 ${identity.typeCode}：${identity.typeName}，${identity.shortLine}`,
+      `${city}${persona}今日人格：${identity.typeCode}。${base}`,
+      `刚测完《活着么》：${identity.typeCode} / ${score}分。${identity.shortLine}`,
+    ];
+    return variants[state.copySeed % variants.length];
+  }
   const variants = [
     `我今天精神存活指数 ${score}，${base}`,
     `${city}${persona}今日样本：精神存活指数 ${score}。${base}`,
@@ -1495,6 +1630,10 @@ function buildShareUrl(source = "poster") {
   url.hash = "";
   url.search = "";
   url.searchParams.set("s", state.shareId);
+  if (state.result?.identity?.typeCode) {
+    url.searchParams.set("c", state.result.identity.typeCode);
+    url.searchParams.set("v", state.result.identity.variantCode);
+  }
   url.searchParams.set("from", source);
   return url.toString();
 }
@@ -1588,6 +1727,12 @@ async function hydrateAiResult() {
           revive: state.result.revive,
           answerSignature: state.result.answerSignature,
         },
+        identity: {
+          typeCode: state.result.identity.typeCode,
+          typeName: state.result.identity.typeName,
+          axes: state.result.identity.axes.map(({ key, letter, choice }) => ({ key, letter, choice })),
+          variant: state.result.identity.variant,
+        },
       }),
     });
 
@@ -1634,6 +1779,9 @@ function sendEvent(type, extra = {}) {
     city: extra.city || state.profile?.city || qs("#city")?.value,
     score: extra.score ?? state.result?.score,
     scoreBucket: extra.scoreBucket ?? state.result?.scoreBucket,
+    typeCode: extra.typeCode || state.result?.identity?.typeCode,
+    entryTypeCode: extra.entryTypeCode || state.entryTypeCode,
+    compatibilityScore: extra.compatibilityScore ?? state.result?.match?.score,
     template: extra.template,
     tone: extra.tone,
     source: extra.source,
@@ -1666,7 +1814,7 @@ function sendEvent(type, extra = {}) {
 
 function buildShareText(result) {
   const shareUrl = buildShareUrl();
-  return `《活着么》今日精神存活报告\n指数：${result.score}/100\n人设：${result.personaTag}\n今日故障点：${result.cause}\n${result.shareLine}\n${shareUrl}`;
+  return `《活着么》今日精神存活人格\n代码：${result.identity.typeCode}\n人格：${result.identity.typeName}\n指数：${result.score}/100\n今日故障点：${result.cause}\n${result.shareLine}\n${shareUrl}`;
 }
 
 function drawShareCanvas(result, template = "classic") {
@@ -1694,29 +1842,32 @@ function drawShareCanvas(result, template = "classic") {
   ctx.fillStyle = "#a7a8aa";
   ctx.font = "700 34px system-ui, sans-serif";
   drawCanvasLogo(ctx, 72, 66, 52);
-  ctx.fillText(`${result.persona}精神存活报告`, 140, 104);
+  ctx.fillText(`${result.persona}精神存活人格`, 140, 104);
   ctx.textAlign = "right";
   ctx.fillText(`${formatDate(new Date())} #${state.shareId.toUpperCase()}`, w - 72, 104);
   ctx.textAlign = "left";
 
+  ctx.fillStyle = result.theme.color;
+  ctx.font = template === "social" ? "950 104px system-ui, sans-serif" : "950 118px system-ui, sans-serif";
+  ctx.fillText(result.identity.typeCode, 72, 260);
   ctx.fillStyle = "#f5f2e8";
-  ctx.font = template === "social" ? "950 76px system-ui, sans-serif" : "950 86px system-ui, sans-serif";
-  wrapText(ctx, result.title, 72, 245, w - 144, 98, 2);
+  ctx.font = "950 66px system-ui, sans-serif";
+  wrapText(ctx, result.identity.coreName, 72, 348, w - 144, 78, 2);
 
-  drawPill(ctx, 76, 342, result.personaTag, result.theme.color);
+  drawPill(ctx, 76, 448, result.identity.suffixName, result.theme.color);
 
-  drawScore(ctx, result.score, 540, 510, 158, result.theme.color);
-  drawStamp(ctx, result.riskStamp, 710, 360);
+  drawScore(ctx, result.score, 540, 600, 126, result.theme.color);
+  drawStamp(ctx, `${result.identity.rarity}%稀有`, 710, 466);
 
   ctx.fillStyle = "#ddd7c7";
   ctx.font = "500 40px system-ui, sans-serif";
-  wrapText(ctx, result.roast, 110, 780, w - 220, 58, 3);
+  wrapText(ctx, result.identity.explanation, 110, 820, w - 220, 58, 3);
 
-  drawMetric(ctx, 92, 955, 420, 170, `${result.cityBeat}%`, `${result.city}同城样本击败`, result.theme.color);
-  drawMetric(ctx, 568, 955, 420, 170, `${result.personaBeat}%`, `${result.persona}同类样本击败`, result.theme.color);
+  drawMetric(ctx, 92, 985, 420, 170, `${result.identity.sameTypeCount}`, `${result.city}同城撞型样本`, result.theme.color);
+  drawMetric(ctx, 568, 985, 420, 170, `${result.identity.rarity}%`, `${result.persona}人格稀有度`, result.theme.color);
 
-  drawInfoBox(ctx, 92, 1140, 420, 118, "今日故障点", result.cause);
-  drawInfoBox(ctx, 568, 1140, 420, 118, "复活方式", result.revive);
+  drawInfoBox(ctx, 92, 1170, 420, 118, "今日故障点", result.cause);
+  drawInfoBox(ctx, 568, 1170, 420, 118, "复活方式", result.revive);
 
   ctx.fillStyle = result.theme.color;
   ctx.font = "900 34px system-ui, sans-serif";
@@ -1801,15 +1952,198 @@ function buildDiagnosis(score, seed) {
   ];
 }
 
-function buildResultSlices(profile, score, tier, seed, answers) {
+function buildIdentityResult(profile, answers, score, tier, seed) {
+  const scores = Object.fromEntries(identityAxes.map((axis) => [axis.key, 0]));
+  const signature = buildAnswerSignature(answers);
+  scores.energy += (score - 50) / 9;
+
+  answers.forEach((answer, index) => {
+    const text = `${answer.dimension} ${answer.label} ${answer.question}`.toLowerCase();
+    const value = Number(answer.value || 0);
+    const force = Math.max(1, Math.abs(value) / 7);
+    scores.energy += value / 12;
+
+    if (/(消息|通知|老板|客户|社交|回复|群|meeting|微信)/i.test(text)) scores.trigger += force;
+    if (/(ddl|截止|考试|作业|kpi|绩效|周报|任务|deadline|汇报)/i.test(text)) scores.trigger -= force;
+
+    if (/(社交|聚|聊|朋友|同学|同事|人类|约饭)/i.test(text)) scores.social += value >= 2 ? force : -force;
+    if (/(假装|静音|不回|沉默|天花板|离线|隐身)/i.test(text)) scores.social -= force * 0.8;
+
+    if (/(睡|夜|作息|吃|饭|热饭|休息|被窝|澡)/i.test(text)) scores.recovery += value <= 4 ? force : force * 0.35;
+    if (/(跑路|出门|远方|下班|离职|门口|晒太阳)/i.test(text)) scores.recovery -= force;
+
+    if (/(计划|现金|余额|预算|边界|专注|自律|报价|收款)/i.test(text)) scores.control += value >= 2 ? force : -force;
+    if (/(随缘|漂|不知道|糊弄|看天|突然)/i.test(text)) scores.control -= force * 0.8;
+
+    if (/(吐槽|催|会议|消息|老板|客户|已读|提醒)/i.test(text)) scores.expression += value >= 0 ? force * 0.45 : -force;
+    if (/(沉默|静音|装没看见|假装|脑内|内耗|不说话)/i.test(text)) scores.expression -= force;
+
+    scores.coping += value >= 8 ? force : value <= -8 ? -force : 0;
+    if (/(宇宙|奇迹|希望|时间倒流|替我|取消|补偿|突然)/i.test(text)) scores.coping -= force * 0.8;
+    if (/(先写|出发|行动|清空|准点|关闭|收定金|拆到)/i.test(text)) scores.coping += force;
+
+    identityAxes.forEach((axis) => {
+      scores[axis.key] += ((hash(`${signature}:${axis.key}:${index}:${dateKey}`) % 9) - 4) / 10;
+    });
+  });
+
+  if (profile.themeId === "student") scores.trigger -= 0.8;
+  if (profile.themeId === "solo") scores.social -= 0.7;
+  if (profile.themeId === "freelance") scores.control += 0.4;
+  identityAxes.forEach((axis) => {
+    scores[axis.key] += ((hash(`${signature}:${profile.themeId}:${profile.city}:${axis.key}:spread`) % 61) - 30) / 8;
+  });
+
+  const axes = identityAxes.map((axis) => {
+    const raw = scores[axis.key] || 0;
+    const first = raw >= 0;
+    const letter = first ? axis.letters[0] : axis.letters[1];
+    const choice = first ? axis.left : axis.right;
+    const percent = clamp(Math.round(50 + raw * 8), 12, 88);
+    return { ...axis, letter, choice, percent };
+  });
+  const typeCode = axes.map((axis) => axis.letter).join("");
+  const coreCode = typeCode.slice(0, 4);
+  const suffixCode = typeCode.slice(4);
+  const coreName = identityCoreNames[coreCode] || "精神低亮样本型";
+  const suffixName = identitySuffixNames[suffixCode] || "今日漂流观察人";
+  const variant = pick(identityVariants[profile.themeId] || identityVariants.worker, seed + hash(typeCode));
+  const rarity = (3 + (hash(`${dateKey}:${typeCode}:${profile.city}`) % 97) / 10).toFixed(1);
+  const sameTypeCount = Math.max(3, Math.round(Number(state.stats.tests || 360) * (Number(rarity) / 100)));
+  const shortLine = buildIdentityShortLine(typeCode, coreName, suffixName, profile);
+  return {
+    typeCode,
+    coreCode,
+    suffixCode,
+    coreName,
+    suffixName,
+    typeName: `${coreName}·${suffixName}`,
+    variant,
+    variantCode: hash(`${typeCode}:${variant}:${dateKey}`).toString(36).slice(0, 5),
+    rarity,
+    sameTypeCount,
+    shortLine,
+    explanation: `${suffixName}，${shortLine}`,
+    axes,
+  };
+}
+
+function buildIdentityShortLine(typeCode, coreName, suffixName, profile) {
+  const lines = {
+    L: "今天正在以最低亮度保护系统。",
+    H: "今天看起来像少数仍然在线的人类。",
+    M: "不是不想回复，只是通知已经开始冒烟。",
+    D: "不是拖延，是截止线在旁边开会。",
+    I: "适合隐身保命，不适合被突然点名。",
+    O: "适合接梗续命，但别把电量花完。",
+    W: "正在等待世界自己变好一点。",
+    A: "还能自救，甚至能顺手救一下别人。",
+  };
+  const selected = [...typeCode].map((letter) => lines[letter]).filter(Boolean);
+  return pick(selected, hash(`${typeCode}:${profile.city}:${profile.themeId}`)) || `${coreName}，${suffixName}`;
+}
+
+function buildIdentityRelations(identity, entryTypeCode, seed) {
+  const saviorCode = flipTypeCode(identity.typeCode, ["energy", "social", "coping"]);
+  const drainCode = flipTypeCode(identity.typeCode, ["trigger", "expression"]);
+  const collapseCode = `${identity.typeCode.slice(0, 4)}${flipTypeCode(identity.typeCode, ["coping"]).slice(4)}`;
+  return {
+    free: {
+      title: `谁能救你：${saviorCode}`,
+      copy: `${buildIdentityNameFromCode(saviorCode)}最容易把你从${identity.coreName}状态里捞出来。`,
+    },
+    locked: [
+      { label: "谁会消耗你", code: drainCode },
+      { label: "谁和你一起崩", code: collapseCode },
+      { label: "最佳互补人格", code: flipTypeCode(identity.typeCode, ["energy", "trigger", "social", "recovery", "control", "expression", "coping"]) },
+    ],
+    entryTypeCode,
+  };
+}
+
+function buildIdentityMatch(typeCode, entryTypeCode, seed) {
+  if (!entryTypeCode || entryTypeCode.length !== 7) return null;
+  const same = [...typeCode].filter((letter, index) => letter === entryTypeCode[index]).length;
+  const complement = 7 - same;
+  const score = clamp(48 + same * 6 + complement * 3 + (seed % 13), 38, 96);
+  const title = same >= 5 ? "同频省电搭子" : complement >= 4 ? "互补救援搭子" : "互相观察搭子";
+  const copy = `你是 ${typeCode}，TA 是 ${entryTypeCode}。${same >= 5 ? "你们很容易一起进入同一种状态。" : "你们更像一个负责提醒，一个负责下线。"}`;
+  return { score, title, copy };
+}
+
+function flipTypeCode(typeCode, axisKeys) {
+  const chars = [...typeCode];
+  axisKeys.forEach((key) => {
+    const index = identityAxes.findIndex((axis) => axis.key === key);
+    if (index < 0) return;
+    const [left, right] = identityAxes[index].letters;
+    chars[index] = chars[index] === left ? right : left;
+  });
+  return chars.join("");
+}
+
+function buildIdentityNameFromCode(typeCode) {
+  return `${identityCoreNames[typeCode.slice(0, 4)] || "精神低亮样本型"}·${identitySuffixNames[typeCode.slice(4)] || "今日漂流观察人"}`;
+}
+
+function renderIdentityCodeProgress(question) {
+  const root = qs("#identityCodeProgress");
+  if (!root) return;
+  const seed = hash(`${dateKey}:${state.activeTheme}:${state.index}:${question?.id || "idle"}`);
+  root.innerHTML = identityAxes
+    .map((axis, index) => {
+      const active = question ? (seed + index) % 3 === 0 : false;
+      const answer = state.answers[index];
+      const letter = answer ? (answer.value >= 0 ? axis.letters[0] : axis.letters[1]) : axis.letters[(seed + index) % 2];
+      return `<span class="${active ? "active" : ""}">${letter}</span>`;
+    })
+    .join("");
+}
+
+function buildAxisImpactText(question, option) {
+  const seed = hash(`${question.id}:${option.label}`);
+  const first = identityAxes[seed % identityAxes.length];
+  const second = identityAxes[(seed + 3) % identityAxes.length];
+  const direction = option.value >= 0 ? first.left : first.right;
+  return `选择后影响：${first.letters.join("/")} ${direction}，并微调 ${second.label}`;
+}
+
+function renderEntryChallenge() {
+  const root = qs("#entryChallengeCard");
+  if (!root || !state.entryTypeCode) return;
+  document.body.classList.add("has-entry-challenge");
+  root.classList.remove("hidden");
+  root.innerHTML = `
+    <span>来自朋友的精神挑战</span>
+    <strong>${state.entryTypeCode}</strong>
+    <p>${buildIdentityNameFromCode(state.entryTypeCode)}正在等你匹配。</p>
+  `;
+}
+
+function buildHotTypeCode() {
+  const samples = ["LMISFNW", "LDIRFTW", "HDOSPTA", "LMORFNA", "LDOSFTW", "HMISPNW"];
+  return pick(samples, hash(`${dateKey}:${state.stats.tests || 0}`)).slice(0, 4);
+}
+
+function normalizeTypeCode(value) {
+  const text = String(value || "").toUpperCase().replace(/[^A-Z]/g, "");
+  if (text.length !== 7) return "";
+  return identityAxes.every((axis, index) => axis.letters.includes(text[index])) ? text : "";
+}
+
+function sanitizeParam(value) {
+  return String(value || "").replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 32);
+}
+
+function buildResultSlices(profile, score, tier, seed, answers, identity) {
   const weakest = [...answers].sort((a, b) => a.value - b.value)[0];
   const strongest = [...answers].sort((a, b) => b.value - a.value)[0];
   const shareHeat = tier === "high" ? "适合炫耀" : tier === "mid" ? "适合自嘲" : "适合求抱团";
   return [
     {
-      label: "今日人设",
-      value: buildPersonaTag(profile, tier, seed + 4),
-      copy: `这张标签比单纯分数更适合截图传播，${profile.city}${profile.persona}一眼能代入。`,
+      label: "人格核心",
+      value: identity.coreName,
+      copy: `${identity.typeCode} 比单纯分数更适合截图传播，朋友一眼能问“你是什么型”。`,
     },
     {
       label: "压力来源",
@@ -1824,7 +2158,7 @@ function buildResultSlices(profile, score, tier, seed, answers) {
   ];
 }
 
-function buildShareReasons(profile, score, tier, seed) {
+function buildShareReasons(profile, score, tier, seed, identity) {
   const content = themeBriefs[profile.themeId] || themeBriefs.worker;
   const reasonByTier = {
     high: "你今天像同类样本里的反常清醒者，有一点欠发。",
@@ -1832,27 +2166,22 @@ function buildShareReasons(profile, score, tier, seed) {
     low: "低电量结果更容易引发朋友接话，但文案已避开真实诊断感。",
   };
   return [
-    { label: "身份感", value: `${profile.city}${profile.persona}专属口径` },
+    { label: "人格代码", value: `${identity.typeCode}，128 型里更容易被记住` },
     { label: "话题钩子", value: pick(content.signals, seed + 11) },
     { label: "传播理由", value: reasonByTier[tier] },
-    { label: "回流入口", value: `编号 ${state.shareId.toUpperCase()} 已写入海报二维码` },
+    { label: "回流入口", value: `二维码已写入 ${identity.typeCode}，好友测完可匹配` },
   ];
 }
 
-function buildChallenge(profile, score, tier, seed) {
-  const thresholds = {
-    high: clamp(score - 8, 45, 82),
-    mid: clamp(score + 6, 36, 76),
-    low: clamp(score + 14, 28, 72),
-  };
+function buildChallenge(profile, score, tier, seed, identity) {
   const endings = [
-    "谁更低电量，谁获得今天的免打扰名额。",
-    "谁比你更像真实样本，谁负责把这张图发群里。",
-    "谁能超过这个指数，谁今天拥有提前下线资格。",
+    "谁和你更同型，谁获得今天的免打扰名额。",
+    "谁和你互补，谁负责把彼此从通知里捞出来。",
+    "谁代码更低亮，谁今天拥有提前下线资格。",
   ];
   return {
-    title: `让朋友挑战 ${thresholds[tier]}/100`,
-    copy: `${profile.city}${profile.persona}今日局已开。${pick(endings, seed + 17)}`,
+    title: `让朋友挑战 ${identity.typeCode}`,
+    copy: `${profile.city}${profile.persona}今日人格局已开。${pick(endings, seed + 17)}`,
   };
 }
 
@@ -1901,10 +2230,10 @@ function buildPersonaTag(profile, tier, seed) {
   return pick(map[profile.themeId]?.[tier] || map.worker.mid, seed);
 }
 
-function buildPremiumPeek(profile, seed) {
-  const times = ["周一 10:30", "周三 23:40", "周五 18:02", "周日 02:16"];
-  const symptoms = ["通知过敏", "余额心跳", "社交掉线", "ddl 追尾"];
-  return `你的年度崩溃高峰可能出现在${pick(times, seed)}，主要症状是${pick(symptoms, seed + 5)}。`;
+function buildPremiumPeek(profile, seed, identity) {
+  const rescueCodes = ["HDOAPTA", "HMOSFTA", "HDORPTA", "HMORPNA"];
+  const rescue = pick(rescueCodes, seed + hash(identity?.typeCode || profile.themeId));
+  return `完整关系图谱已生成：最可能救你的是 ${rescue}，最容易耗你的人格需要解锁查看。`;
 }
 
 function drawGrid(ctx, w, h) {

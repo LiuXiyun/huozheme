@@ -12,6 +12,7 @@ module.exports = async function handler(req, res) {
     const baseResult = body.baseResult || {};
     const profile = body.profile || {};
     const answers = Array.isArray(body.answers) ? body.answers : [];
+    const identity = normalizeIdentity(body.identity || {});
     const tier = baseResult.tier || "mid";
     const answerFingerprint = buildAnswerFingerprint(answers, baseResult.answerSignature);
     const dateKey = new Date().toISOString().slice(0, 10);
@@ -36,7 +37,7 @@ module.exports = async function handler(req, res) {
       return res.status(200).json({ source: "fallback", result: null, persisted: hasRedis() });
     }
 
-    const aiResult = await callDeepSeek({ profile, answers, baseResult });
+    const aiResult = await callDeepSeek({ profile, answers, baseResult, identity });
     await setJson(cacheKey, aiResult, 60 * 60 * 20);
     await safeEvent({ type: "ai_generated", theme: profile.themeId, score: baseResult.score });
     return res.status(200).json({ source: "deepseek", result: aiResult, persisted: hasRedis() });
@@ -45,7 +46,7 @@ module.exports = async function handler(req, res) {
   }
 };
 
-async function callDeepSeek({ profile, answers, baseResult }) {
+async function callDeepSeek({ profile, answers, baseResult, identity }) {
   const response = await fetch("https://api.deepseek.com/chat/completions", {
     method: "POST",
     headers: {
@@ -62,7 +63,7 @@ async function callDeepSeek({ profile, answers, baseResult }) {
         {
           role: "user",
           content: JSON.stringify({
-            task: "基于用户今日测试结果，生成一组可传播、可付费预览的娱乐化结果文案。",
+            task: "基于用户今日测试结果和精神存活人格代码，生成一组可传播、可付费预览的娱乐化结果文案。",
             requiredShape: {
               title: "不超过12字的状态标题",
               roast: "35-55字毒舌吐槽",
@@ -79,6 +80,7 @@ async function callDeepSeek({ profile, answers, baseResult }) {
             profile,
             answers,
             baseResult,
+            identity,
             answerFingerprint,
           }),
         },
@@ -108,6 +110,23 @@ function normalizeAiResult(value) {
       sharp: normalizeLines(value.shareLines?.sharp),
       black: normalizeLines(value.shareLines?.black),
     },
+  };
+}
+
+function normalizeIdentity(value) {
+  return {
+    typeCode: limit(value.typeCode, 12),
+    typeName: limit(value.typeName, 40),
+    variant: limit(value.variant, 30),
+    axes: Array.isArray(value.axes)
+      ? value.axes
+          .map((axis) => ({
+            key: limit(axis.key, 20),
+            letter: limit(axis.letter, 2),
+            choice: limit(axis.choice, 20),
+          }))
+          .slice(0, 7)
+      : [],
   };
 }
 

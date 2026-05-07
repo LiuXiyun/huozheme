@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>活着么 UI Design Board</title>
+    <title>活着么 128 型人格 UI Design Board</title>
     <style>
       :root {
         --bg: #0d0f12;
@@ -27,23 +27,22 @@
         padding: 40px;
         background: #08090b;
         color: var(--text);
-        font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+        font-family:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
           "Microsoft YaHei", sans-serif;
       }
 
       .board {
         display: grid;
-        grid-template-columns: repeat(4, 390px);
+        grid-template-columns: repeat(8, 390px) 1280px;
         align-items: start;
         gap: 40px;
       }
 
-      .artboard {
+      .artboard,
+      .desktop-board {
         position: relative;
         overflow: hidden;
-        width: 390px;
-        min-height: 844px;
-        border-radius: 28px;
         border: 1px solid rgba(255, 255, 255, 0.18);
         background:
           radial-gradient(circle at 18% 10%, rgba(202, 255, 69, 0.15), transparent 170px),
@@ -52,10 +51,25 @@
         box-shadow: 0 28px 120px rgba(0, 0, 0, 0.4);
       }
 
-      .artboard::before {
+      .artboard {
+        width: 390px;
+        min-height: 844px;
+        border-radius: 28px;
+      }
+
+      .desktop-board {
+        width: 1280px;
+        min-height: 900px;
+        border-radius: 18px;
+      }
+
+      .artboard::before,
+      .desktop-board::before,
+      .poster::before {
         content: "";
         position: absolute;
         inset: 0;
+        pointer-events: none;
         opacity: 0.13;
         background-image:
           linear-gradient(rgba(255, 255, 255, 0.4) 1px, transparent 1px),
@@ -67,7 +81,8 @@
       .topbar,
       .section,
       .dock,
-      .modal {
+      .modal,
+      .desktop-layout {
         position: relative;
         z-index: 1;
       }
@@ -89,12 +104,10 @@
         font-weight: 950;
       }
 
-      .dot {
-        width: 10px;
-        height: 10px;
-        border-radius: 50%;
-        background: var(--lime);
-        box-shadow: 0 0 22px rgba(202, 255, 69, 0.8);
+      .logo img {
+        width: 30px;
+        height: 30px;
+        border-radius: 10px;
       }
 
       .pill {
@@ -109,78 +122,121 @@
       }
 
       .section {
-        padding: 20px;
+        padding: 18px;
       }
 
       h1,
       h2,
+      h3,
       p {
         margin: 0;
       }
 
       .mega {
-        margin-top: 18px;
-        font-size: 82px;
-        line-height: 0.84;
+        margin-top: 16px;
+        font-size: 61px;
+        line-height: 0.9;
         font-weight: 1000;
       }
 
       .sub {
-        margin-top: 16px;
+        margin-top: 12px;
         color: #ddd7c7;
-        font-size: 20px;
+        font-size: 18px;
         line-height: 1.25;
         font-weight: 850;
       }
 
-      .ticker {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 8px;
-        margin-top: 22px;
-      }
-
-      .metric,
-      .card,
-      .theme,
-      .option,
-      .share-card,
-      .premium-box {
-        border: 1px solid var(--line);
-        border-radius: 14px;
-        background: rgba(255, 255, 255, 0.065);
-      }
-
-      .metric {
-        padding: 12px;
-      }
-
+      .label,
       .metric span,
-      .label {
+      .axis span,
+      .relation span {
         display: block;
         color: var(--muted);
         font-size: 11px;
         font-weight: 850;
       }
 
+      .code {
+        color: var(--lime);
+        font-size: 64px;
+        line-height: 0.9;
+        font-weight: 1000;
+        letter-spacing: 0;
+      }
+
+      .type-name {
+        margin-top: 10px;
+        font-size: 30px;
+        line-height: 1.08;
+        font-weight: 1000;
+      }
+
+      .card,
+      .theme,
+      .metric,
+      .option,
+      .share-card,
+      .premium-box,
+      .axis,
+      .relation,
+      .field,
+      .preview,
+      .poster {
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.065);
+      }
+
+      .ticker {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        margin-top: 18px;
+      }
+
+      .metric {
+        min-height: 74px;
+        padding: 12px;
+      }
+
       .metric strong {
         display: block;
-        margin-top: 8px;
+        margin-top: 7px;
         color: var(--lime);
-        font-size: 23px;
+        font-size: 24px;
         line-height: 1;
       }
 
-      .theme-grid {
+      .proof {
         display: grid;
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        margin-top: 16px;
+      }
+
+      .proof .pill {
+        width: 100%;
+        text-align: center;
+      }
+
+      .theme-grid,
+      .field-row,
+      .grid2,
+      .axis-grid,
+      .relation-grid {
+        display: grid;
         gap: 10px;
+      }
+
+      .theme-grid {
+        grid-template-columns: repeat(2, 1fr);
         margin-top: 18px;
       }
 
       .theme {
-        min-height: 76px;
-        padding: 13px;
+        min-height: 72px;
+        padding: 12px;
       }
 
       .theme.active {
@@ -188,9 +244,13 @@
         background: rgba(202, 255, 69, 0.12);
       }
 
-      .theme strong {
+      .theme strong,
+      .field strong,
+      .axis strong,
+      .relation strong {
         display: block;
-        font-size: 17px;
+        margin-top: 6px;
+        line-height: 1.2;
       }
 
       .theme span {
@@ -201,73 +261,39 @@
       }
 
       .field-row {
-        display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 10px;
         margin-top: 12px;
       }
 
       .field {
-        border: 1px solid var(--line);
-        border-radius: 14px;
         padding: 12px;
         background: rgba(0, 0, 0, 0.16);
-      }
-
-      .field strong {
-        display: block;
-        margin-top: 8px;
       }
 
       .cta {
         height: 56px;
         display: grid;
         place-items: center;
-        margin-top: 14px;
+        margin-top: 12px;
         border-radius: 14px;
         color: #0d0f12;
         background: var(--lime);
         font-weight: 950;
       }
 
-      .mini-report {
-        margin-top: 16px;
-        padding: 18px;
-        min-height: 180px;
+      .identity-preview {
+        margin-top: 12px;
+        padding: 14px;
         background:
-          radial-gradient(circle at 85% 18%, rgba(255, 98, 84, 0.3), transparent 120px),
-          rgba(255, 255, 255, 0.06);
+          linear-gradient(135deg, rgba(202, 255, 69, 0.13), rgba(255, 255, 255, 0.045)),
+          rgba(255, 255, 255, 0.055);
       }
 
-      .score-big {
-        color: var(--lime);
-        font-size: 86px;
-        line-height: 0.9;
-        font-weight: 1000;
-      }
-
-      .dock {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 8px;
-        position: absolute;
-        left: 20px;
-        right: 20px;
-        bottom: 20px;
-      }
-
-      .dock div {
-        min-height: 78px;
-        padding: 10px;
-        border: 1px solid var(--line);
-        border-radius: 14px;
-        background: rgba(255, 255, 255, 0.055);
-      }
-
-      .dock strong {
-        display: block;
-        margin-top: 6px;
-        font-size: 15px;
+      .challenge-entry {
+        margin-top: 12px;
+        padding: 14px;
+        border-color: rgba(85, 215, 210, 0.38);
+        background: rgba(85, 215, 210, 0.08);
       }
 
       .progress {
@@ -280,31 +306,55 @@
 
       .progress i {
         display: block;
-        width: 40%;
+        width: 57%;
         height: 100%;
         border-radius: inherit;
         background: linear-gradient(90deg, var(--red), var(--lime));
       }
 
       .question {
-        margin-top: 34px;
-        font-size: 42px;
+        margin-top: 22px;
+        font-size: 38px;
         line-height: 1.05;
         font-weight: 1000;
       }
 
+      .axis-live {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 5px;
+        margin-top: 18px;
+      }
+
+      .axis-live span {
+        height: 38px;
+        display: grid;
+        place-items: center;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        color: var(--muted);
+        background: rgba(255, 255, 255, 0.055);
+        font-size: 13px;
+        font-weight: 950;
+      }
+
+      .axis-live span.active {
+        color: #0d0f12;
+        background: var(--lime);
+      }
+
       .option-list {
         display: grid;
-        gap: 12px;
-        margin-top: 30px;
+        gap: 10px;
+        margin-top: 22px;
       }
 
       .option {
-        min-height: 72px;
+        min-height: 68px;
         display: flex;
         align-items: center;
         gap: 12px;
-        padding: 15px;
+        padding: 14px;
         font-weight: 900;
       }
 
@@ -318,19 +368,21 @@
         background: var(--lime);
       }
 
-      .side-note {
-        margin-top: 18px;
-        padding: 14px;
-        color: var(--muted);
-        border-left: 3px solid var(--cyan);
-        background: rgba(85, 215, 210, 0.08);
-        line-height: 1.45;
+      .impact {
+        margin-top: 14px;
+        padding: 12px;
+        color: var(--lime);
+        border: 1px solid rgba(202, 255, 69, 0.34);
+        border-radius: 999px;
+        background: rgba(202, 255, 69, 0.08);
+        font-size: 13px;
+        font-weight: 950;
       }
 
-      .report {
-        padding: 18px;
+      .result-card {
         margin: 14px;
-        min-height: 535px;
+        padding: 18px;
+        min-height: 548px;
         border-radius: 18px;
         border: 1px solid rgba(255, 255, 255, 0.18);
         background:
@@ -338,75 +390,82 @@
           linear-gradient(155deg, #1b1f24, #0e1013);
       }
 
-      .score-row {
-        display: grid;
-        grid-template-columns: 150px 1fr;
-        gap: 12px;
+      .result-top {
+        display: flex;
         align-items: center;
-        margin-top: 18px;
+        justify-content: space-between;
+        gap: 12px;
       }
 
-      .ring {
-        width: 146px;
-        height: 146px;
+      .score-mini {
+        width: 96px;
+        height: 96px;
         display: grid;
         place-items: center;
         border-radius: 50%;
-        background: radial-gradient(circle, #111 55%, transparent 57%), conic-gradient(var(--lime) 0 277deg, rgba(255,255,255,.14) 277deg);
+        background:
+          radial-gradient(circle, #111 55%, transparent 57%),
+          conic-gradient(var(--lime) 0 97deg, rgba(255, 255, 255, 0.14) 97deg);
       }
 
-      .ring strong {
-        font-size: 52px;
+      .score-mini strong {
+        font-size: 34px;
       }
 
-      .stamp {
-        width: max-content;
-        padding: 12px;
-        border: 1px solid rgba(255, 98, 84, 0.55);
-        border-radius: 12px;
-        color: var(--red);
-        font-size: 22px;
-        font-weight: 1000;
-        transform: rotate(3deg);
-      }
-
-      .report h2 {
-        margin-top: 14px;
-        font-size: 29px;
-        line-height: 1.1;
-      }
-
-      .report p {
-        margin-top: 10px;
-        color: #ddd7c7;
-        line-height: 1.45;
-      }
-
-      .grid2,
-      .grid3 {
+      .rare {
         display: grid;
+        grid-template-columns: 1fr 1fr;
         gap: 8px;
-        margin-top: 12px;
+        margin-top: 14px;
       }
 
-      .grid2 {
-        grid-template-columns: repeat(2, 1fr);
+      .rare .metric {
+        min-height: 68px;
       }
 
-      .grid3 {
-        grid-template-columns: repeat(3, 1fr);
+      .axis-grid {
+        grid-template-columns: 1fr;
+        margin: 14px;
       }
 
-      .chip-card {
-        padding: 12px;
-        border: 1px solid var(--line);
-        border-radius: 12px;
-        background: rgba(255, 255, 255, 0.07);
+      .axis {
+        padding: 11px 12px;
       }
 
-      .chip-card strong {
+      .axis-row {
+        display: grid;
+        grid-template-columns: 28px 1fr 28px;
+        gap: 8px;
+        align-items: center;
+        margin-top: 8px;
+      }
+
+      .track {
+        height: 8px;
+        overflow: hidden;
+        border-radius: 99px;
+        background: rgba(255, 255, 255, 0.12);
+      }
+
+      .track i {
         display: block;
-        margin-top: 7px;
+        width: var(--w);
+        height: 100%;
+        border-radius: inherit;
+        background: var(--lime);
+      }
+
+      .relation-grid {
+        margin: 14px;
+      }
+
+      .relation {
+        padding: 14px;
+      }
+
+      .relation.locked {
+        border-style: dashed;
+        color: rgba(246, 241, 222, 0.62);
       }
 
       .share-card {
@@ -419,6 +478,54 @@
         margin-top: 8px;
         font-size: 20px;
         line-height: 1.25;
+      }
+
+      .poster {
+        position: relative;
+        overflow: hidden;
+        width: 322px;
+        height: 430px;
+        margin: 14px auto;
+        padding: 22px;
+        background:
+          radial-gradient(circle at 80% 20%, rgba(255, 98, 84, 0.28), transparent 120px),
+          linear-gradient(160deg, #202329, #0c0d0f);
+      }
+
+      .poster .code {
+        margin-top: 38px;
+        font-size: 48px;
+      }
+
+      .qr {
+        position: absolute;
+        right: 22px;
+        bottom: 22px;
+        width: 76px;
+        height: 76px;
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 4px;
+        padding: 10px;
+        border-radius: 12px;
+        background: #f6f1de;
+      }
+
+      .qr i {
+        border-radius: 2px;
+        background: #111;
+      }
+
+      .poster-tools {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        margin: 0 14px 14px;
+      }
+
+      .poster-tools .pill {
+        width: 100%;
+        text-align: center;
       }
 
       .actions {
@@ -463,7 +570,7 @@
 
       .modal h2 {
         margin-top: 8px;
-        font-size: 31px;
+        font-size: 30px;
         line-height: 1.05;
       }
 
@@ -473,139 +580,239 @@
         line-height: 1.5;
       }
 
-      .heat {
+      .lock-grid {
         display: grid;
-        grid-template-columns: repeat(7, 1fr);
-        gap: 6px;
-        margin-top: 18px;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+        margin-top: 16px;
       }
 
-      .heat i {
-        height: 34px;
-        border-radius: 8px;
-        background: rgba(255, 255, 255, 0.08);
+      .desktop-layout {
+        display: grid;
+        grid-template-columns: 430px 1fr;
+        gap: 34px;
+        padding: 28px;
       }
 
-      .heat i:nth-child(3n) {
-        background: rgba(255, 209, 95, 0.75);
+      .phone-preview {
+        height: 844px;
+        border: 1px solid var(--line);
+        border-radius: 28px;
+        background:
+          radial-gradient(circle at 18% 10%, rgba(202, 255, 69, 0.15), transparent 170px),
+          linear-gradient(150deg, #14171b, #0d0f12);
       }
 
-      .heat i:nth-child(4n) {
-        background: rgba(255, 98, 84, 0.72);
+      .rail {
+        display: grid;
+        align-content: start;
+        gap: 16px;
+        padding: 34px;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.055);
       }
 
-      .modal .cta {
-        margin-top: 18px;
+      .rail h1 {
+        font-size: 58px;
+        line-height: 1.02;
+      }
+
+      .rail-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
       }
     </style>
   </head>
   <body>
     <div class="board">
       <section class="artboard" id="home-artboard">
-        <div class="topbar"><div class="logo"><span class="dot"></span>活着么</div><div class="pill">AI题库在线</div></div>
+        <div class="topbar"><div class="logo"><img src="./assets/logo-mark.svg" alt="" />活着么</div><div class="pill">128型人格</div></div>
         <div class="section">
-          <div class="pill">今日精神存活站 / Shanghai</div>
-          <h1 class="mega">活着么</h1>
-          <p class="sub">10 秒生成一张能发出去的精神存活报告。</p>
-          <div class="ticker">
-            <div class="metric"><span>今日检测</span><strong>8921</strong></div>
-            <div class="metric"><span>平均存活</span><strong>42</strong></div>
-            <div class="metric"><span>异常城市</span><strong>杭州</strong></div>
-          </div>
+          <div class="pill">每日精神存活人格站</div>
+          <h1 class="mega">测出你的精神存活人格</h1>
+          <p class="sub">7 位代码，128 种精神人设。测完就知道你今天是什么型。</p>
+          <div class="proof"><div class="pill">代码可传播</div><div class="pill">好友可匹配</div><div class="pill">海报可回流</div></div>
           <div class="theme-grid">
-            <div class="theme active"><strong>打工人</strong><span>工位运行模式</span></div>
-            <div class="theme"><strong>大学生</strong><span>DDL 呼吸模式</span></div>
-            <div class="theme"><strong>独居人</strong><span>深夜离线模式</span></div>
-            <div class="theme"><strong>自由职业</strong><span>自我驱动模式</span></div>
+            <div class="theme active"><strong>打工人</strong><span>会议、通勤、余额</span></div>
+            <div class="theme"><strong>大学生</strong><span>DDL、考试、早八</span></div>
+            <div class="theme"><strong>独居人</strong><span>外卖、房间、深夜</span></div>
+            <div class="theme"><strong>自由职业</strong><span>客户、现金流、自律</span></div>
           </div>
           <div class="field-row">
             <div class="field"><span class="label">城市</span><strong>上海</strong></div>
-            <div class="field"><span class="label">状态</span><strong>肉体上班</strong></div>
+            <div class="field"><span class="label">今日状态</span><strong>肉体上班</strong></div>
           </div>
-          <div class="cta">开始今日检测</div>
-          <div class="card mini-report">
-            <span class="label">报告样张</span>
-            <div class="score-big">37</div>
-            <strong>低电量营业中</strong>
-            <p>系统检测到你正在以最低亮度运行人生。</p>
+          <div class="cta">开始生成我的代码</div>
+          <div class="card identity-preview">
+            <span class="label">结果样张</span>
+            <div class="code" style="font-size:44px;">LMISFNW</div>
+            <h2 class="type-name" style="font-size:23px;">通知过敏省电型</h2>
+            <p class="sub" style="font-size:14px;">随缘静音许愿人，今日同城稀有度 7.3%。</p>
           </div>
-        </div>
-        <div class="dock">
-          <div><span class="label">报告图</span><strong>3:4 海报</strong></div>
-          <div><span class="label">城市榜</span><strong>身份排名</strong></div>
-          <div><span class="label">隐藏结局</span><strong>9.9 内测</strong></div>
         </div>
       </section>
 
       <section class="artboard" id="quiz-artboard">
-        <div class="topbar"><div class="logo"><span class="dot"></span>活着么</div><div class="pill">2/5</div></div>
+        <div class="topbar"><div class="logo"><img src="./assets/logo-mark.svg" alt="" />代码生成中</div><div class="pill">3/5</div></div>
         <div class="section">
           <div class="pill">上海 / 打工人 / AI题库</div>
           <div class="progress"><i></i></div>
-          <div class="question">今天会议含量如何？</div>
+          <div class="axis-live"><span>L</span><span class="active">M</span><span>I</span><span>S</span><span>F</span><span>N</span><span>W</span></div>
+          <div class="question">今天消息怎么响？</div>
           <div class="option-list">
-            <div class="option"><b>A</b>几乎没有，耳朵自由</div>
-            <div class="option"><b>B</b>一两个，还能呼吸</div>
-            <div class="option"><b>C</b>连环会，脑子排队下线</div>
-            <div class="option"><b>D</b>会中会，像被 PPT 腌入味</div>
+            <div class="option"><b>A</b>很克制，像文明社会</div>
+            <div class="option"><b>B</b>断断续续，可以忍</div>
+            <div class="option"><b>C</b>一直亮，像催债灯</div>
+            <div class="option"><b>D</b>静音也能听见幻觉</div>
           </div>
-          <div class="side-note">题库每天刷新，分数只是娱乐算法，真正好玩的是你发出去的那张图。</div>
+          <div class="impact">选择后影响：M 消息触发 + N 内耗静音</div>
         </div>
       </section>
 
-      <section class="artboard" id="result-artboard">
-        <div class="topbar"><div class="logo"><span class="dot"></span>报告完成</div><div class="pill">可保存海报</div></div>
-        <div class="report">
-          <span class="label">打工人精神存活报告</span>
-          <div class="score-row">
-            <div class="ring"><strong>77</strong></div>
-            <div class="stamp">状态在线</div>
+      <section class="artboard" id="result-main-artboard">
+        <div class="topbar"><div class="logo"><img src="./assets/logo-mark.svg" alt="" />人格已生成</div><div class="pill">可发出去</div></div>
+        <div class="result-card">
+          <div class="result-top">
+            <div><span class="label">你的精神存活代码</span><div class="code">LMISFNW</div></div>
+            <div class="score-mini"><strong>27</strong></div>
           </div>
-          <h2>肉体上班，灵魂请假</h2>
-          <p>你今天像刚升级过的人类样本，但请不要被老板发现。</p>
-          <div class="grid2">
-            <div class="chip-card"><span class="label">上海用户中击败</span><strong>63%</strong></div>
-            <div class="chip-card"><span class="label">打工人中击败</span><strong>58%</strong></div>
+          <h2 class="type-name">通知过敏省电型</h2>
+          <p class="sub" style="font-size:16px;">随缘静音许愿人。你今天不是不想回复，只是在用最低亮度保护系统。</p>
+          <div class="rare">
+            <div class="metric"><span>同城稀有度</span><strong>7.3%</strong></div>
+            <div class="metric"><span>撞型样本</span><strong>52人</strong></div>
           </div>
-          <div class="grid2">
-            <div class="chip-card"><span class="label">今日死因</span><strong>周报反噬</strong></div>
-            <div class="chip-card"><span class="label">复活方式</span><strong>喝一杯想喝的</strong></div>
+          <div class="rare">
+            <div class="metric"><span>今日故障点</span><strong>通知过敏</strong></div>
+            <div class="metric"><span>复活方式</span><strong>先静音20分钟</strong></div>
           </div>
-          <div class="grid3">
-            <div class="chip-card"><span class="label">电量</span><strong>77%</strong></div>
-            <div class="chip-card"><span class="label">风险</span><strong>31%</strong></div>
-            <div class="chip-card"><span class="label">复活</span><strong>82%</strong></div>
-          </div>
+          <div class="share-card" style="margin:14px 0 0;"><span class="label">适合发出去的那句</span><strong>我是 LMISFNW，通知过敏省电型，今天不是离线，是在保命。</strong></div>
         </div>
-        <div class="share-card"><span class="label">适合发出去的那句</span><strong>我今天精神存活指数 77，今日检测：本人暂未阵亡。</strong></div>
-        <div class="actions"><div class="primary">保存当前海报</div><div>复制分享文案</div></div>
+        <div class="actions"><div class="primary">保存人格海报</div><div>复制我的代码</div></div>
       </section>
 
-      <section class="artboard" id="premium-artboard">
-        <div class="topbar"><div class="logo"><span class="dot"></span>隐藏结局</div><div class="pill">内测预约</div></div>
-        <div class="section">
-          <div class="premium-box" style="padding:18px;">
-            <span class="label">已生成 3 条付费洞察</span>
-            <h2 style="margin-top:8px;">年度精神账单</h2>
-            <p style="margin-top:8px;color:#ddd7c7;line-height:1.45;">你的年度崩溃高峰可能出现在周一 10:30，主要症状是通知过敏。</p>
+      <section class="artboard" id="result-detail-artboard">
+        <div class="topbar"><div class="logo"><img src="./assets/logo-mark.svg" alt="" />人格解释</div><div class="pill">7维拆解</div></div>
+        <div class="axis-grid">
+          <div class="axis"><span>能量 H/L</span><strong>L 低亮省电</strong><div class="axis-row"><b>H</b><div class="track"><i style="--w:27%"></i></div><b>L</b></div></div>
+          <div class="axis"><span>触发 M/D</span><strong>M 消息触发</strong><div class="axis-row"><b>M</b><div class="track"><i style="--w:72%"></i></div><b>D</b></div></div>
+          <div class="axis"><span>社交 O/I</span><strong>I 隐身保命</strong><div class="axis-row"><b>O</b><div class="track"><i style="--w:34%"></i></div><b>I</b></div></div>
+          <div class="axis"><span>回血 S/R</span><strong>S 睡眠回血</strong><div class="axis-row"><b>S</b><div class="track"><i style="--w:68%"></i></div><b>R</b></div></div>
+          <div class="axis"><span>控制 P/F</span><strong>F 随缘漂流</strong><div class="axis-row"><b>P</b><div class="track"><i style="--w:39%"></i></div><b>F</b></div></div>
+          <div class="axis"><span>表达 T/N</span><strong>N 内耗静音</strong><div class="axis-row"><b>T</b><div class="track"><i style="--w:31%"></i></div><b>N</b></div></div>
+          <div class="axis"><span>应对 A/W</span><strong>W 等待奇迹</strong><div class="axis-row"><b>A</b><div class="track"><i style="--w:44%"></i></div><b>W</b></div></div>
+        </div>
+      </section>
+
+      <section class="artboard" id="poster-artboard">
+        <div class="topbar"><div class="logo"><img src="./assets/logo-mark.svg" alt="" />分享图工厂</div><div class="pill">报告卡</div></div>
+        <div class="poster">
+          <span class="label">活着么 / 今日精神人格</span>
+          <div class="code">LMISFNW</div>
+          <h2 class="type-name" style="font-size:26px;">通知过敏省电型</h2>
+          <p class="sub" style="font-size:15px;">今日状态：随缘静音许愿人。不是不回消息，是系统正在保命。</p>
+          <div class="ticker">
+            <div class="metric"><span>指数</span><strong>27</strong></div>
+            <div class="metric"><span>稀有</span><strong>7.3%</strong></div>
+            <div class="metric"><span>同型</span><strong>52</strong></div>
           </div>
+          <div class="qr"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+        </div>
+        <div class="poster-tools"><div class="pill">人格卡</div><div class="pill">朋友圈</div><div class="pill">小红书</div></div>
+        <div class="actions"><div class="primary">保存当前海报</div><div>换一句文案</div></div>
+      </section>
+
+      <section class="artboard" id="relation-artboard">
+        <div class="topbar"><div class="logo"><img src="./assets/logo-mark.svg" alt="" />关系图谱</div><div class="pill">免费预览</div></div>
+        <div class="relation-grid">
+          <div class="relation"><span>谁能救你</span><strong>HDOA 高亮行动派</strong><p class="sub" style="font-size:14px;">TA 会把你从通知里拎出来，顺便提醒你吃饭。</p></div>
+          <div class="relation locked"><span>谁会消耗你</span><strong>解锁后查看</strong></div>
+          <div class="relation locked"><span>谁和你一起崩</span><strong>解锁后查看</strong></div>
+          <div class="relation locked"><span>最佳互补人格</span><strong>解锁后查看</strong></div>
         </div>
         <div class="modal-backdrop">
           <div class="modal">
-            <span class="label">内测预约</span>
-            <h2>隐藏结局开放内测</h2>
-            <p>不会真实扣款。预约后优先开放 9.9 内测价。</p>
-            <div class="heat">
-              <i></i><i></i><i></i><i></i><i></i><i></i><i></i>
-              <i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+            <span class="label">9.9 内测价</span>
+            <h2>解锁完整关系图谱</h2>
+            <p>看看谁救你、谁耗你、谁和你一起崩，以及你的反向互补人格。</p>
+            <div class="lock-grid">
+              <div class="metric"><span>关系卡</span><strong>4张</strong></div>
+              <div class="metric"><span>同型画像</span><strong>1份</strong></div>
+              <div class="metric"><span>黑化文案</span><strong>3条</strong></div>
+              <div class="metric"><span>互补人格</span><strong>1个</strong></div>
             </div>
-            <div class="grid3">
-              <div class="chip-card"><span class="label">热力图</span><strong>周一</strong></div>
-              <div class="chip-card"><span class="label">死因</span><strong>通知</strong></div>
-              <div class="chip-card"><span class="label">文案</span><strong>3条</strong></div>
-            </div>
-            <div class="cta">记录我的内测名额</div>
+            <div class="cta">锁定 9.9 内测价</div>
           </div>
+        </div>
+      </section>
+
+      <section class="artboard" id="return-artboard">
+        <div class="topbar"><div class="logo"><img src="./assets/logo-mark.svg" alt="" />好友挑战</div><div class="pill">来自分享</div></div>
+        <div class="section">
+          <div class="card challenge-entry">
+            <span class="label">来自朋友的精神代码</span>
+            <div class="code" style="font-size:44px;">LMISFNW</div>
+            <h2 style="font-size:24px;margin-top:8px;">通知过敏省电型向你发起挑战</h2>
+          </div>
+          <h1 class="mega" style="font-size:54px;">测测你们会互救还是互耗</h1>
+          <p class="sub">完成 5 题后，系统会生成你们的匹配度和关系卡。</p>
+          <div class="ticker">
+            <div class="metric"><span>好友指数</span><strong>27</strong></div>
+            <div class="metric"><span>同型概率</span><strong>7%</strong></div>
+            <div class="metric"><span>关系卡</span><strong>4</strong></div>
+          </div>
+          <div class="theme-grid">
+            <div class="theme active"><strong>打工人</strong><span>和TA比谁更省电</span></div>
+            <div class="theme"><strong>大学生</strong><span>和TA比谁更DDL</span></div>
+          </div>
+          <div class="cta">开始我的人格测试</div>
+        </div>
+      </section>
+
+      <section class="artboard" id="match-artboard">
+        <div class="topbar"><div class="logo"><img src="./assets/logo-mark.svg" alt="" />匹配完成</div><div class="pill">关系卡</div></div>
+        <div class="result-card">
+          <span class="label">你们的精神匹配度</span>
+          <div class="code" style="font-size:70px;">73%</div>
+          <h2 class="type-name">一个负责静音，一个负责行动</h2>
+          <p class="sub" style="font-size:16px;">你是 LDOSFTW，TA 是 LMISFNW。你们适合互相提醒下线，不适合同时打开工作群。</p>
+          <div class="relation-grid" style="margin:14px 0 0;">
+            <div class="relation"><span>谁救谁</span><strong>你更像行动触发器</strong></div>
+            <div class="relation"><span>谁先崩</span><strong>TA 更容易被通知打断</strong></div>
+            <div class="relation locked"><span>完整关系图谱</span><strong>9.9 解锁</strong></div>
+          </div>
+        </div>
+        <div class="actions"><div class="primary">保存匹配海报</div><div>发给另一个朋友</div></div>
+      </section>
+
+      <section class="desktop-board" id="desktop-artboard">
+        <div class="desktop-layout">
+          <div class="phone-preview">
+            <div class="topbar"><div class="logo"><img src="./assets/logo-mark.svg" alt="" />活着么</div><div class="pill">128型</div></div>
+            <div class="section">
+              <h1 class="mega">测出你的精神存活人格</h1>
+              <div class="cta">开始生成我的代码</div>
+              <div class="card identity-preview"><span class="label">样张</span><div class="code" style="font-size:44px;">LMISFNW</div><h2 class="type-name" style="font-size:23px;">通知过敏省电型</h2></div>
+            </div>
+          </div>
+          <aside class="rail">
+            <div class="logo"><img src="./assets/logo-mark.svg" alt="" />活着么</div>
+            <h1>128 型精神存活人格测试</h1>
+            <p class="sub">让用户分享“我是这种人”，而不只是“我今天几分”。</p>
+            <div class="rail-grid">
+              <div class="metric"><span>今日样本</span><strong>707</strong></div>
+              <div class="metric"><span>热门人格</span><strong>LMIS</strong></div>
+              <div class="metric"><span>锁价人数</span><strong>12</strong></div>
+            </div>
+            <div class="card" style="padding:18px;"><span class="label">手机打开 / 发给朋友</span><div class="code" style="font-size:36px;">SHARE_MOU4</div><p class="sub" style="font-size:15px;">二维码链接会携带人格代码，用于好友匹配回流。</p></div>
+            <div class="rail-grid">
+              <div class="relation"><span>裂变钩子</span><strong>你是什么型</strong></div>
+              <div class="relation"><span>付费钩子</span><strong>完整关系图谱</strong></div>
+              <div class="relation"><span>复访钩子</span><strong>每日变体</strong></div>
+            </div>
+          </aside>
         </div>
       </section>
     </div>
