@@ -11,6 +11,9 @@
   --cyan: #54d6d1;
   --gold: #ffd166;
   --ink: #0d0e10;
+  --visual-viewport-height: 100svh;
+  --visual-viewport-top: 0px;
+  --keyboard-inset: 0px;
 }
 
 * {
@@ -981,13 +984,16 @@ h1 {
   backdrop-filter: blur(12px);
 }
 
-.city-picker-open {
+html.city-picker-open,
+body.city-picker-open {
   overflow: hidden;
+  overscroll-behavior: none;
 }
 
 .city-picker-layer {
   position: fixed;
-  inset: 0;
+  inset: var(--visual-viewport-top, 0px) 0 auto 0;
+  height: var(--visual-viewport-height, 100svh);
   z-index: 12;
   display: grid;
   align-items: end;
@@ -995,11 +1001,13 @@ h1 {
   padding-bottom: max(18px, env(safe-area-inset-bottom));
   background: rgba(0, 0, 0, 0.62);
   backdrop-filter: blur(14px);
+  overflow: hidden;
+  overscroll-behavior: contain;
 }
 
 .city-picker-panel {
   width: min(100%, 430px);
-  max-height: min(760px, calc(var(--app-vh, 1vh) * 92));
+  max-height: min(760px, calc(var(--visual-viewport-height, 100svh) - 36px));
   margin: 0 auto;
   display: grid;
   grid-template-rows: auto auto auto auto minmax(0, 1fr);
@@ -1009,6 +1017,7 @@ h1 {
   background: #181a20;
   padding: 18px;
   box-shadow: 0 -22px 90px rgba(0, 0, 0, 0.52);
+  overflow: hidden;
 }
 
 .city-picker-head {
@@ -1138,6 +1147,39 @@ h1 {
   padding: 18px;
   font-weight: 850;
   line-height: 1.45;
+}
+
+.city-keyboard-open .city-picker-layer {
+  padding: 10px 14px max(10px, env(safe-area-inset-bottom));
+}
+
+.city-keyboard-open .city-picker-panel {
+  max-height: calc(var(--visual-viewport-height, 100svh) - 20px);
+  gap: 10px;
+  padding: 14px;
+  border-radius: 16px;
+}
+
+.city-keyboard-open .city-picker-head {
+  min-height: 36px;
+  padding-right: 44px;
+}
+
+.city-keyboard-open .city-picker-head span {
+  display: none;
+}
+
+.city-keyboard-open .city-picker-head h2 {
+  margin-top: 0;
+  font-size: 20px;
+}
+
+.city-keyboard-open .city-quick {
+  display: none;
+}
+
+.city-keyboard-open .city-result-list {
+  min-height: 96px;
 }
 
 .modal-card {

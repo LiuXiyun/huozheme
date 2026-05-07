@@ -28,6 +28,7 @@ const state = {
 };
 
 const shareQrCache = new Map();
+let cityPickerScrollY = 0;
 
 const cityGroups = [
   {
@@ -1030,6 +1031,7 @@ function init() {
 
   window.addEventListener("resize", updateViewportHeight);
   window.visualViewport?.addEventListener("resize", updateViewportHeight);
+  window.visualViewport?.addEventListener("scroll", updateViewportHeight);
 }
 
 function renderCityOptions() {
@@ -1055,6 +1057,14 @@ function bindCityPickerEvents() {
   qs("#citySearch")?.addEventListener("input", (event) => {
     renderCityResults(event.target.value);
   });
+  qs("#citySearch")?.addEventListener("focus", () => {
+    setCityKeyboardState(true);
+    updateViewportHeight();
+    keepCitySearchVisible();
+  });
+  qs("#citySearch")?.addEventListener("blur", () => {
+    window.setTimeout(() => setCityKeyboardState(false), 120);
+  });
   qs("#useTypedCityBtn")?.addEventListener("click", () => {
     selectCity(qs("#citySearch")?.value || "");
   });
@@ -1070,26 +1080,26 @@ function openCityPicker() {
   updateViewportHeight();
   qs("#cityPicker")?.classList.remove("hidden");
   qs("#cityTrigger")?.setAttribute("aria-expanded", "true");
-  document.body.classList.add("city-picker-open");
+  lockCityPickerScroll();
+  setCityKeyboardState(false);
   const search = qs("#citySearch");
   if (search) {
     search.value = "";
     renderCityResults("");
-    window.setTimeout(() => {
-      try {
-        search.focus({ preventScroll: true });
-      } catch {
-        search.focus();
-      }
-    }, 80);
   }
   sendEvent("open_city_picker", { city: getCityValue() });
 }
 
 function closeCityPicker() {
+  if (document.activeElement === qs("#citySearch")) {
+    document.activeElement.blur();
+  }
   qs("#cityPicker")?.classList.add("hidden");
   qs("#cityTrigger")?.setAttribute("aria-expanded", "false");
-  document.body.classList.remove("city-picker-open");
+  setCityKeyboardState(false);
+  unlockCityPickerScroll();
+  updateViewportHeight();
+  window.setTimeout(updateViewportHeight, 180);
 }
 
 function selectCity(value) {
@@ -1168,8 +1178,59 @@ function sanitizeCity(value) {
 }
 
 function updateViewportHeight() {
-  const height = window.visualViewport?.height || window.innerHeight || 844;
-  document.documentElement.style.setProperty("--app-vh", `${height * 0.01}px`);
+  const viewport = window.visualViewport;
+  const height = Math.round(viewport?.height || window.innerHeight || 844);
+  const top = Math.round(viewport?.offsetTop || 0);
+  const keyboardInset = Math.max(0, Math.round((window.innerHeight || height) - height - top));
+  const root = document.documentElement;
+  root.style.setProperty("--app-vh", `${height * 0.01}px`);
+  root.style.setProperty("--visual-viewport-height", `${height}px`);
+  root.style.setProperty("--visual-viewport-top", `${top}px`);
+  root.style.setProperty("--keyboard-inset", `${keyboardInset}px`);
+
+  if (!qs("#cityPicker")?.classList.contains("hidden") && document.activeElement === qs("#citySearch")) {
+    setCityKeyboardState(true);
+    keepCitySearchVisible();
+  }
+}
+
+function lockCityPickerScroll() {
+  cityPickerScrollY = window.scrollY || document.documentElement.scrollTop || 0;
+  document.documentElement.classList.add("city-picker-open");
+  document.body.classList.add("city-picker-open");
+  document.body.style.position = "fixed";
+  document.body.style.top = `-${cityPickerScrollY}px`;
+  document.body.style.left = "0";
+  document.body.style.right = "0";
+  document.body.style.width = "100%";
+}
+
+function unlockCityPickerScroll() {
+  document.documentElement.classList.remove("city-picker-open");
+  document.body.classList.remove("city-picker-open");
+  document.body.style.position = "";
+  document.body.style.top = "";
+  document.body.style.left = "";
+  document.body.style.right = "";
+  document.body.style.width = "";
+  window.scrollTo(0, cityPickerScrollY);
+}
+
+function setCityKeyboardState(isOpen) {
+  document.documentElement.classList.toggle("city-keyboard-open", Boolean(isOpen));
+  qs("#cityPicker")?.classList.toggle("city-keyboard-open", Boolean(isOpen));
+}
+
+function keepCitySearchVisible() {
+  const search = qs("#citySearch");
+  if (!search || qs("#cityPicker")?.classList.contains("hidden")) return;
+  window.requestAnimationFrame(() => {
+    try {
+      search.scrollIntoView({ block: "nearest", inline: "nearest" });
+    } catch {
+      search.scrollIntoView(false);
+    }
+  });
 }
 
 function renderThemeButtons() {
