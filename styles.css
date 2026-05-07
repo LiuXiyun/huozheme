@@ -3140,3 +3140,240 @@ body {
 .hidden {
   display: none !important;
 }
+
+/* Reduction pass: make the product feel like a simple daily card. */
+.phone-stage .hero-page {
+  display: block;
+  min-height: auto;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.035), transparent 280px),
+    #101114;
+}
+
+.phone-stage .scan-grid,
+.phone-stage .hero-lab,
+.phone-stage .feature-gallery,
+.phone-stage .daily-signals {
+  display: none;
+}
+
+.phone-stage .hero-copy {
+  min-height: calc(100svh - 58px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 22px 20px 28px;
+}
+
+.phone-stage .brand-row {
+  color: #d9d9d4;
+}
+
+.phone-stage h1 {
+  font-size: clamp(60px, 17vw, 76px);
+  line-height: 0.95;
+}
+
+.phone-stage .tagline {
+  max-width: 300px;
+  color: #d8d5c9;
+  font-size: 20px;
+}
+
+.phone-stage .hero-proof-strip {
+  display: none;
+}
+
+.phone-stage .setup-form,
+.phone-stage .theme-brief,
+.quiz-card,
+.report-card,
+.result-panel > *,
+.poster-studio {
+  border-color: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.045);
+  box-shadow: none;
+}
+
+.phone-stage .theme-brief {
+  display: none;
+}
+
+.theme-button,
+.field select,
+.city-trigger,
+.option-button,
+.primary-action,
+.ghost-action,
+.chip-button,
+.tiny-action {
+  border-radius: 12px;
+}
+
+.result-page {
+  gap: 14px;
+}
+
+.report-card {
+  padding: 18px;
+}
+
+.identity-hero {
+  margin-top: 14px;
+  padding: 16px;
+  border-color: rgba(199, 255, 79, 0.26);
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.identity-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.identity-title-row .tiny-action {
+  flex: 0 0 auto;
+  min-height: 36px;
+  margin-top: 4px;
+}
+
+.identity-code {
+  width: max-content;
+  border: 1px solid rgba(199, 255, 79, 0.5);
+  border-radius: 999px;
+  color: var(--lime);
+  background: rgba(199, 255, 79, 0.08);
+  padding: 7px 12px;
+  font-size: 20px;
+  line-height: 1;
+}
+
+.identity-hero h2 {
+  margin-top: 12px;
+  font-size: clamp(42px, 12vw, 58px);
+}
+
+.identity-meta-grid {
+  margin-top: 4px;
+}
+
+.identity-meta-grid div,
+.rank-grid div,
+.signal-list div,
+.advice-box,
+.diagnosis-item,
+.result-deep-grid div,
+.identity-axis-item {
+  background: rgba(255, 255, 255, 0.04);
+  box-shadow: none;
+}
+
+.score-row {
+  margin-top: 12px;
+}
+
+#reportStatus {
+  margin-top: 8px;
+  font-size: clamp(28px, 8vw, 38px);
+}
+
+#reportRoast {
+  color: #eee9dd;
+  font-size: 18px;
+  line-height: 1.5;
+}
+
+.result-detail-panel {
+  margin-top: 12px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.035);
+  padding: 12px;
+}
+
+.result-detail-panel summary {
+  cursor: pointer;
+  color: var(--text);
+  font-weight: 950;
+  list-style: none;
+}
+
+.result-detail-panel summary::-webkit-details-marker {
+  display: none;
+}
+
+.result-detail-panel summary::after {
+  content: " +";
+  color: var(--lime);
+}
+
+.result-detail-panel[open] summary::after {
+  content: " -";
+}
+
+.share-panel {
+  display: grid;
+  gap: 10px;
+}
+
+.share-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.share-panel-head span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.share-panel p {
+  margin: 0;
+  color: #f3efdf;
+  font-size: 18px;
+  line-height: 1.45;
+}
+
+.relation-preview,
+.insight-stack,
+.challenge-card {
+  display: none;
+}
+
+.template-switch {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.template-switch .chip-button {
+  min-height: 48px;
+}
+
+.tone-switch {
+  display: none;
+}
+
+.desktop-rail .rail-grid,
+.desktop-rail .rail-type-board,
+.desktop-rail .rail-live-feed,
+.desktop-rail .rail-get-card,
+.desktop-rail .rail-feed {
+  display: none;
+}
+
+.desktop-rail {
+  gap: 20px;
+}
+
+@media (min-width: 901px) {
+  .phone-stage .hero-copy {
+    min-height: auto;
+  }
+
+  .result-page {
+    grid-template-columns: minmax(0, 1fr) minmax(320px, 0.82fr);
+    align-items: start;
+  }
+}

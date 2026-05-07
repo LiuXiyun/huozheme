@@ -1,6 +1,6 @@
 const { getJson, hasRedis, pushEvent, setJson } = require("./_lib/upstash");
 
-const SYSTEM_PROMPT = `你是《活着么》的结果文案引擎。生成中文黑色幽默内容，但必须像正常聊天一样顺口、好懂、有画面感。避免内部增长词、测评腔、主动扩散暗示和过重标签；优先说“今日电量、状态、类型、关系匹配”。不要恐吓、不要医疗判断、不要自伤暗示、不要承诺准确性。只输出 JSON。`;
+const SYSTEM_PROMPT = `你是《活着么》的结果文案引擎。生成中文黑色幽默内容，但必须像朋友聊天一样短、顺口、好懂、真诚。禁止使用“人格、诊断、观察率、状态位置、系统检测、模型、样本、回流、传播”等内部词；不要复杂复合名词，不要 AI 腔，不要主动劝分享。优先说“今日电量、今天最耗你、先做一件小事”。不要恐吓、不要医疗判断、不要自伤暗示、不要承诺准确性。只输出 JSON。`;
 
 module.exports = async function handler(req, res) {
   if (req.method !== "POST") {
@@ -63,18 +63,18 @@ async function callDeepSeek({ profile, answers, baseResult, identity }) {
         {
           role: "user",
           content: JSON.stringify({
-            task: "基于用户今日测试结果和状态类型代码，生成一组适合结果卡展示、读起来顺口的娱乐化结果文案。",
+            task: "基于用户今日测试结果，生成一组适合结果卡展示、读起来顺口的人话文案。",
             requiredShape: {
-              title: "不超过12字的状态标题",
-              roast: "35-55字毒舌吐槽",
-              advice: "25-45字今日建议",
+              title: "不超过10字的状态标题，像一句人话",
+              roast: "25-45字吐槽，具体、短句、不绕",
+              advice: "20-38字今日建议，只给一个可做的小动作",
               cause: "4-8字今天最耗用户的事",
               revive: "4-10字用户可以先做的小事",
-              premiumPeek: "35-55字完整版关系预览，必须让用户看懂价值",
+              premiumPeek: "28-45字完整版关系预览，必须具体好懂",
               shareLines: {
-                soft: ["3条轻吐槽结果短句，每条30-45字"],
-                sharp: ["3条真实一点的结果短句，每条30-45字"],
-                black: ["3条黑色幽默结果短句，每条30-45字"],
+                soft: ["3条轻吐槽结果短句，每条22-38字"],
+                sharp: ["3条真实一点的结果短句，每条22-38字"],
+                black: ["3条黑色幽默结果短句，每条22-38字"],
               },
             },
             profile,

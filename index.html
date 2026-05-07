@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#101114" />
-    <meta name="description" content="每天 10 秒做 5 道小题，生成你的今日状态报告。" />
+    <meta name="description" content="每天 10 秒做 5 道小题，生成你的今日状态小卡。" />
     <meta property="og:title" content="活着么" />
     <meta property="og:description" content="5 道小题，测出你的今日状态类型。" />
     <title>活着么</title>
@@ -28,10 +28,10 @@
             <span>10 秒状态测试</span>
           </div>
           <h1>活着么</h1>
-          <p class="tagline">做 5 道小题，生成你的今日状态报告。</p>
+          <p class="tagline">做 5 道小题，生成你的今日状态小卡。</p>
           <div class="hero-proof-strip" aria-label="玩法亮点">
             <span>5 题出结果</span>
-            <span>类型可匹配</span>
+            <span>今日状态</span>
             <span>状态卡可保存</span>
           </div>
           <div class="challenge-entry-card hidden" id="entryChallengeCard"></div>
@@ -100,7 +100,7 @@
             </div>
             <div class="sample-score" id="sampleScore">37</div>
             <h2 id="sampleTitle">低电量营业中</h2>
-            <p id="sampleText">系统检测到你正在以最低亮度运行人生。</p>
+            <p id="sampleText">今天适合低亮度营业。</p>
             <div class="sample-tags">
               <span id="samplePersona">上海打工人</span>
               <span id="sampleBeat">同城观察值 12%</span>
@@ -133,8 +133,8 @@
               <div class="tile-visual report-visual" aria-hidden="true">
                 <span></span><span></span><span></span>
               </div>
-              <strong>同频匹配</strong>
-              <p>输入状态码后，会显示两种状态的匹配度。</p>
+              <strong>朋友对一下</strong>
+              <p>复制编号后，可以和朋友对一下。</p>
             </div>
           </div>
         </aside>
@@ -152,7 +152,7 @@
           </div>
           <div class="progress-track"><div class="progress-bar" id="progressBar"></div></div>
           <div class="answer-feedback hidden" id="answerFeedback"></div>
-          <div class="identity-code-progress" id="identityCodeProgress" aria-label="人格代码生成进度"></div>
+          <div class="identity-code-progress" id="identityCodeProgress" aria-label="状态生成进度"></div>
           <div class="question-context">
             <span>本题看什么</span>
             <strong id="questionFactor">睡眠电量</strong>
@@ -167,21 +167,26 @@
         <section class="page result-page hidden" id="resultView" data-testid="result-view">
         <div class="report-card" id="reportCard">
           <div class="report-header">
-            <span id="reportTheme">你的今日状态报告</span>
+            <span id="reportTheme">你的今日状态小卡</span>
             <time id="reportDate"></time>
           </div>
           <div class="identity-hero" id="identityHero">
-            <span>你的今日类型</span>
-            <div class="identity-code" id="identityCode">LMISFNW</div>
-            <h2 id="identityName">通知过敏省电型</h2>
-            <p id="identityCopy">随缘静音许愿人，今日正在以最低亮度保护系统。</p>
+            <span>你的今日状态</span>
+            <div class="identity-title-row">
+              <div>
+                <div class="identity-code" id="identityCode">D2</div>
+                <h2 id="identityName">低电人</h2>
+              </div>
+              <button class="tiny-action" id="copyStatusCodeBtn" type="button">复制编号</button>
+            </div>
+            <p id="identityCopy">今天适合低亮度营业。</p>
             <div class="identity-meta-grid">
               <div>
-                <span>同城观察率</span>
+                <span>同城有多少人像你</span>
                 <strong id="identityRarity">--</strong>
               </div>
               <div>
-                <span>同型热度</span>
+                <span>今日同类人数</span>
                 <strong id="identityTwins">--</strong>
               </div>
             </div>
@@ -196,17 +201,6 @@
           <h2 id="reportStatus"></h2>
           <div class="persona-tag" id="personaTag"></div>
           <p id="reportRoast"></p>
-          <div class="rank-grid">
-            <div>
-              <strong id="cityRank"></strong>
-              <span id="cityRankLabel"></span>
-            </div>
-            <div>
-              <strong id="personaRank"></strong>
-              <span id="personaRankLabel"></span>
-            </div>
-          </div>
-          <div class="rank-footnote" id="rankFootnote"></div>
           <div class="signal-list">
             <div>
               <span>今天最耗你</span>
@@ -221,16 +215,33 @@
             <span>给你的建议</span>
             <p id="adviceText"></p>
           </div>
-          <div class="diagnosis-grid" id="diagnosisGrid"></div>
-          <div class="identity-axis-grid" id="identityAxisGrid"></div>
-          <div class="result-deep-grid" id="resultDeepGrid"></div>
+          <details class="result-detail-panel" id="resultDetailPanel">
+            <summary>再看看细节</summary>
+            <div class="rank-grid">
+              <div>
+                <strong id="cityRank"></strong>
+                <span id="cityRankLabel"></span>
+              </div>
+              <div>
+                <strong id="personaRank"></strong>
+                <span id="personaRankLabel"></span>
+              </div>
+            </div>
+            <div class="rank-footnote" id="rankFootnote"></div>
+            <div class="diagnosis-grid" id="diagnosisGrid"></div>
+            <div class="identity-axis-grid" id="identityAxisGrid"></div>
+            <div class="result-deep-grid" id="resultDeepGrid"></div>
+          </details>
           <div class="report-footer">活着么 H5</div>
         </div>
 
         <aside class="result-panel">
           <div class="match-card hidden" id="matchCard"></div>
           <div class="share-panel">
-            <span>今日嘴替句</span>
+            <div class="share-panel-head">
+              <span>今日嘴替句</span>
+              <button class="tiny-action" id="refreshCopyBtn" type="button">换一句</button>
+            </div>
             <p id="shareCopy"></p>
           </div>
           <div class="relation-preview" id="relationPreview"></div>
@@ -241,7 +252,6 @@
               <span>状态卡片</span>
                 <strong>选一种风格，留一张今日记录</strong>
               </div>
-              <button class="tiny-action" id="refreshCopyBtn" type="button">换一句</button>
             </div>
             <div class="poster-preview-shell">
               <canvas id="posterPreview" width="540" height="720" role="img" aria-label="状态卡预览"></canvas>
@@ -370,7 +380,7 @@
           </div>
         </div>
         <div class="rail-kicker">今日热度</div>
-        <h2>5 题生成你的今日状态报告</h2>
+        <h2>5 题生成你的今日状态小卡</h2>
         <div class="rail-now" id="railNow"></div>
         <div class="rail-grid">
           <div>
@@ -397,7 +407,7 @@
         </div>
         <div class="rail-hooks">
           <span>测完会得到</span>
-          <strong>今日类型、状态卡、同频匹配和隐藏关系入口</strong>
+          <strong>一个今日状态名、一句嘴替话、一张可保存的小卡</strong>
         </div>
         <div class="rail-type-board" id="railTypeBoard" aria-label="今日类型观察"></div>
         <div class="rail-live-feed" id="railLiveFeed" aria-label="今日状态观察"></div>
