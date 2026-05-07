@@ -17,6 +17,10 @@
   box-sizing: border-box;
 }
 
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
 html,
 body {
   min-height: 100%;
@@ -40,6 +44,7 @@ button,
 select,
 input {
   font: inherit;
+  -webkit-tap-highlight-color: transparent;
 }
 
 button {
@@ -253,6 +258,42 @@ h1 {
 .field select:focus,
 .field input:focus {
   border-color: rgba(199, 255, 79, 0.72);
+}
+
+.city-trigger {
+  width: 100%;
+  min-height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.07);
+  padding: 0 14px;
+  text-align: left;
+}
+
+.city-trigger:focus-visible {
+  outline: 0;
+  border-color: rgba(199, 255, 79, 0.72);
+}
+
+.city-trigger strong {
+  min-width: 0;
+  font-size: 18px;
+  font-weight: 950;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.city-trigger small {
+  flex: 0 0 auto;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
 }
 
 .primary-action,
@@ -940,6 +981,165 @@ h1 {
   backdrop-filter: blur(12px);
 }
 
+.city-picker-open {
+  overflow: hidden;
+}
+
+.city-picker-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 12;
+  display: grid;
+  align-items: end;
+  padding: 18px;
+  padding-bottom: max(18px, env(safe-area-inset-bottom));
+  background: rgba(0, 0, 0, 0.62);
+  backdrop-filter: blur(14px);
+}
+
+.city-picker-panel {
+  width: min(100%, 430px);
+  max-height: min(760px, calc(var(--app-vh, 1vh) * 92));
+  margin: 0 auto;
+  display: grid;
+  grid-template-rows: auto auto auto auto minmax(0, 1fr);
+  gap: 14px;
+  border: 1px solid var(--line);
+  border-radius: 20px 20px 8px 8px;
+  background: #181a20;
+  padding: 18px;
+  box-shadow: 0 -22px 90px rgba(0, 0, 0, 0.52);
+}
+
+.city-picker-head {
+  position: relative;
+  min-height: 46px;
+  padding-right: 50px;
+}
+
+.city-picker-head span,
+.city-search span,
+.city-quick span,
+.city-result-head span {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.city-picker-head h2 {
+  margin: 4px 0 0;
+  font-size: 26px;
+  line-height: 1.15;
+}
+
+.city-search {
+  display: grid;
+  gap: 8px;
+}
+
+.city-search input {
+  width: 100%;
+  min-height: 52px;
+  border: 1px solid rgba(199, 255, 79, 0.28);
+  border-radius: 12px;
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.08);
+  padding: 0 14px;
+  outline: 0;
+  font-size: 16px;
+  font-weight: 900;
+}
+
+.city-search input:focus {
+  border-color: rgba(199, 255, 79, 0.78);
+}
+
+.city-quick {
+  display: grid;
+  gap: 8px;
+}
+
+#cityQuickList {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.city-chip,
+.city-result-list button {
+  border: 1px solid var(--line);
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.065);
+  touch-action: manipulation;
+}
+
+.city-chip {
+  flex: 0 0 auto;
+  min-height: 40px;
+  border-radius: 999px;
+  padding: 0 14px;
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.city-chip.active,
+.city-result-list button.active {
+  border-color: var(--theme-color, var(--lime));
+  background: color-mix(in srgb, var(--theme-color, var(--lime)) 18%, transparent);
+}
+
+.city-result-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.city-result-head .tiny-action {
+  min-height: 34px;
+  flex: 0 0 auto;
+}
+
+.city-result-list {
+  min-height: 180px;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-content: start;
+  gap: 8px;
+  padding-right: 2px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.city-result-list button {
+  min-width: 0;
+  min-height: 44px;
+  border-radius: 12px;
+  padding: 0 8px;
+  font-size: 15px;
+  font-weight: 900;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.city-empty {
+  grid-column: 1 / -1;
+  min-height: 120px;
+  display: grid;
+  place-items: center;
+  border: 1px dashed var(--line);
+  border-radius: 12px;
+  color: var(--muted);
+  text-align: center;
+  padding: 18px;
+  font-weight: 850;
+  line-height: 1.45;
+}
+
 .modal-card {
   position: relative;
   width: min(100%, 480px);
@@ -1135,6 +1335,7 @@ h1 {
 .theme-button,
 .field select,
 .field input,
+.city-trigger,
 .primary-action,
 .ghost-action,
 .premium-card button,
@@ -1159,7 +1360,8 @@ h1 {
 }
 
 .field select,
-.field input {
+.field input,
+.city-trigger {
   min-height: 70px;
   font-weight: 900;
 }
@@ -2783,7 +2985,8 @@ body {
 }
 
 .phone-stage .field select,
-.phone-stage .field input {
+.phone-stage .field input,
+.phone-stage .city-trigger {
   min-height: 56px;
   padding: 0 12px;
 }

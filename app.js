@@ -103,6 +103,8 @@ const cityGroups = [
   },
 ];
 
+const popularCities = ["上海", "北京", "深圳", "广州", "杭州", "成都", "南京", "武汉", "重庆", "西安", "苏州", "长沙"];
+
 const posterTemplates = {
   classic: "报告卡",
   social: "状态墙",
@@ -922,8 +924,10 @@ state.shareId = createId("share");
 init();
 
 function init() {
+  updateViewportHeight();
   document.documentElement.style.setProperty("--theme-color", themes[state.activeTheme].color);
   renderCityOptions();
+  bindCityPickerEvents();
   renderThemeButtons();
   renderAtmosphere();
   hydrateStats();
@@ -977,17 +981,6 @@ function init() {
     hydrateQuestionPool({ applyToCurrentQuiz: false });
   });
 
-  qs("#city").addEventListener("input", () => {
-    updateThemeBrief();
-    updateSampleTheme();
-  });
-
-  qs("#city").addEventListener("change", () => {
-    updateThemeBrief();
-    updateSampleTheme();
-    sendEvent("select_city", { city: getCityValue() });
-  });
-
   qs("#mood").addEventListener("change", () => {
     updateThemeBrief();
     updateSampleTheme();
@@ -1034,20 +1027,149 @@ function init() {
       });
     }
   });
+
+  window.addEventListener("resize", updateViewportHeight);
+  window.visualViewport?.addEventListener("resize", updateViewportHeight);
 }
 
 function renderCityOptions() {
   const input = qs("#city");
-  const list = qs("#cityList");
-  if (!input || !list) return;
+  if (!input) return;
   const previous = getCityValue();
-  const cities = [...new Set(cityGroups.flatMap((group) => group.cities))];
-  list.innerHTML = cities.map((city) => `<option value="${city}"></option>`).join("");
   input.value = previous || "上海";
+  updateCityDisplay();
+  renderCityQuickList();
+  renderCityResults("");
 }
 
 function getCityValue() {
   return (qs("#city")?.value || "").trim() || "上海";
+}
+
+function bindCityPickerEvents() {
+  qs("#cityTrigger")?.addEventListener("click", openCityPicker);
+  qs("#closeCityPickerBtn")?.addEventListener("click", closeCityPicker);
+  qs("#cityPicker")?.addEventListener("click", (event) => {
+    if (event.target === qs("#cityPicker")) closeCityPicker();
+  });
+  qs("#citySearch")?.addEventListener("input", (event) => {
+    renderCityResults(event.target.value);
+  });
+  qs("#useTypedCityBtn")?.addEventListener("click", () => {
+    selectCity(qs("#citySearch")?.value || "");
+  });
+  window.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !qs("#cityPicker")?.classList.contains("hidden")) {
+      closeCityPicker();
+    }
+  });
+}
+
+function openCityPicker() {
+  clearToast();
+  updateViewportHeight();
+  qs("#cityPicker")?.classList.remove("hidden");
+  qs("#cityTrigger")?.setAttribute("aria-expanded", "true");
+  document.body.classList.add("city-picker-open");
+  const search = qs("#citySearch");
+  if (search) {
+    search.value = "";
+    renderCityResults("");
+    window.setTimeout(() => {
+      try {
+        search.focus({ preventScroll: true });
+      } catch {
+        search.focus();
+      }
+    }, 80);
+  }
+  sendEvent("open_city_picker", { city: getCityValue() });
+}
+
+function closeCityPicker() {
+  qs("#cityPicker")?.classList.add("hidden");
+  qs("#cityTrigger")?.setAttribute("aria-expanded", "false");
+  document.body.classList.remove("city-picker-open");
+}
+
+function selectCity(value) {
+  const city = sanitizeCity(value);
+  if (!city) return;
+  qs("#city").value = city;
+  updateCityDisplay();
+  renderCityQuickList();
+  updateThemeBrief();
+  updateSampleTheme();
+  closeCityPicker();
+  sendEvent("select_city", { city });
+}
+
+function updateCityDisplay() {
+  const display = qs("#cityDisplay");
+  if (display) display.textContent = getCityValue();
+}
+
+function renderCityQuickList() {
+  const root = qs("#cityQuickList");
+  if (!root) return;
+  root.innerHTML = "";
+  popularCities.forEach((city) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = `city-chip${city === getCityValue() ? " active" : ""}`;
+    button.textContent = city;
+    button.addEventListener("click", () => selectCity(city));
+    root.appendChild(button);
+  });
+}
+
+function renderCityResults(query) {
+  const root = qs("#cityResultList");
+  if (!root) return;
+  const city = sanitizeCity(query);
+  const entries = getCityEntries();
+  const matches = city
+    ? entries.filter((entry) => entry.city.includes(city) || entry.group.includes(city))
+    : entries;
+  const exact = city && entries.some((entry) => entry.city === city);
+  const useTyped = qs("#useTypedCityBtn");
+  if (useTyped) {
+    useTyped.classList.toggle("hidden", !city || exact || matches.length > 0);
+    useTyped.textContent = city ? `使用「${city}」` : "";
+  }
+  setText("#cityResultMeta", city ? `${matches.length} 个匹配` : "全部城市");
+  root.innerHTML = "";
+  if (!matches.length) {
+    const empty = document.createElement("div");
+    empty.className = "city-empty";
+    empty.textContent = city ? `没有找到「${city}」，可以直接使用输入内容。` : "暂无城市";
+    root.appendChild(empty);
+    return;
+  }
+  matches.forEach((entry) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = entry.city === getCityValue() ? "active" : "";
+    button.textContent = entry.city;
+    button.addEventListener("click", () => selectCity(entry.city));
+    root.appendChild(button);
+  });
+}
+
+function getCityEntries() {
+  return cityGroups.flatMap((group) => group.cities.map((city) => ({ city, group: group.label })));
+}
+
+function sanitizeCity(value) {
+  return String(value || "")
+    .replace(/[<>"]/g, "")
+    .replace(/\s+/g, "")
+    .slice(0, 12);
+}
+
+function updateViewportHeight() {
+  const height = window.visualViewport?.height || window.innerHeight || 844;
+  document.documentElement.style.setProperty("--app-vh", `${height * 0.01}px`);
 }
 
 function renderThemeButtons() {
