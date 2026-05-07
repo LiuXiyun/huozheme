@@ -31,8 +31,8 @@ const shareQrCache = new Map();
 
 const posterTemplates = {
   classic: "报告卡",
-  social: "朋友圈",
-  xhs: "小红书",
+  social: "状态墙",
+  xhs: "醒目版",
 };
 
 const toneOptions = {
@@ -234,7 +234,7 @@ const themes = {
     hotLine: "成都",
     tomorrow: "明天检测：冰箱文明程度",
     causes: ["外卖盒堆叠", "房间静音", "深夜脑内会议"],
-    revives: ["洗个热水澡", "开灯五分钟", "给朋友发一句废话"],
+    revives: ["洗个热水澡", "开灯五分钟", "写下一句废话"],
     questions: [
       {
         id: "sleep",
@@ -776,7 +776,7 @@ const advice = {
   low: [
     "先睡、先吃、先洗澡。重大人生决定请推迟到血糖恢复后。",
     "今天不适合硬刚世界，适合把手机静音 20 分钟。",
-    "别打开招聘软件和前任朋友圈，它们都不属于急救用品。",
+    "别打开招聘软件和前任动态，它们都不属于急救用品。",
   ],
 };
 
@@ -794,25 +794,25 @@ const themeBriefs = {
     copy: "用睡眠、通勤、会议、余额和下班概率，测你今天的打工状态。",
     tags: ["会议浓度", "通勤损耗", "余额心跳"],
     signals: ["下班幻想升温", "同步一下过敏", "周报反噬预警"],
-    railFeed: ["发给同事：看谁今天电量最低", "隐藏内容：谁能把你从工位捞出来", "今日话题：杭州打工人轻度冒烟"],
+    railFeed: ["工位观察：今天电量谁最低", "隐藏内容：谁能把你从工位捞出来", "今日话题：杭州打工人轻度冒烟"],
   },
   student: {
     copy: "用作息、DDL、考试、宿舍和生活费，测你今天的校园状态。",
     tags: ["DDL 压强", "早八耐受", "生活费电量"],
     signals: ["早八残影出现", "小组作业气压下降", "手机吞噬时间偏高"],
-    railFeed: ["发给舍友：看谁还没开始写", "隐藏内容：谁能陪你一起赶 DDL", "今日话题：大学生精神电量抽检"],
+    railFeed: ["宿舍观察：谁还没开始写", "隐藏内容：谁能陪你一起赶 DDL", "今日话题：大学生精神电量抽检"],
   },
   solo: {
     copy: "用吃饭、房间、开灯、社交和深夜脑内活动，测你今天的独居状态。",
     tags: ["房间静音", "热饭概率", "人类连接"],
     signals: ["外卖备注含人量上升", "开灯延迟偏高", "深夜脑内会议预约中"],
-    railFeed: ["发给朋友：提醒我吃顿热的", "隐藏内容：谁最适合陪你沉默", "今日话题：独居人低亮度运行"],
+    railFeed: ["今日提醒：先吃顿热的", "隐藏内容：谁最适合陪你沉默", "今日话题：独居人低亮度运行"],
   },
   freelance: {
     copy: "用客户消息、现金流、自律和边界感，测你今天的自由职业状态。",
     tags: ["客户扰动", "现金流心跳", "边界感"],
     signals: ["改稿循环开始发热", "尾款召唤仪式进行中", "自律系统需要重启"],
-    railFeed: ["发给同行：看今天谁先收款", "隐藏内容：谁能帮你稳住边界", "今日话题：自由职业者边界抽检"],
+    railFeed: ["同行观察：今天谁先收款", "隐藏内容：谁能帮你稳住边界", "今日话题：自由职业者边界抽检"],
   },
 };
 
@@ -821,7 +821,7 @@ const questionHints = [
   "不用想太久，第一反应最像今天的你。",
   "题目每天会换，二刷不容易撞同一套。",
   "每个选择都会影响最终类型和今日电量。",
-  "最后会生成状态报告和可保存海报。",
+  "最后会生成状态报告和状态卡。",
 ];
 
 const dateKey = formatDateKey(new Date());
@@ -1005,7 +1005,7 @@ function renderDailySignals() {
   const signals = [
     { label: "今日热词", value: pick(content.signals, seed) },
     { label: "同城人数", value: `${city} ${sample || "--"} 人测过` },
-    { label: "适合转发", value: pick(["下班前", "午休后", "群聊安静时", "睡前别太晚"], seed + 7) },
+    { label: "适合查看", value: pick(["下班前", "午休后", "安静几分钟", "睡前别太晚"], seed + 7) },
   ];
   root.innerHTML = signals
     .map(
@@ -1034,7 +1034,7 @@ function renderRailContent() {
   nowRoot.innerHTML = `
     <span>当前场景</span>
     <strong>${city}${theme.label} / 今日平均 ${average} 分</strong>
-    <p>${content.copy} 右侧二维码可直接在手机打开，也可以发给朋友一起测。</p>
+    <p>${content.copy} 右侧二维码可直接在手机打开，继续完成测试。</p>
   `;
   if (typeRoot) {
     const types = buildRailHotTypes(seed);
@@ -1079,11 +1079,11 @@ function renderRailContent() {
   }
   if (getRoot) {
     getRoot.innerHTML = `
-      <span>扫码后能得到什么</span>
+      <span>手机端包含什么</span>
       <div>
         <strong>今日类型</strong>
-        <strong>可保存海报</strong>
-        <strong>好友匹配</strong>
+        <strong>状态卡片</strong>
+        <strong>同频匹配</strong>
         <strong>隐藏关系</strong>
       </div>
     `;
@@ -1092,7 +1092,7 @@ function renderRailContent() {
     .map(
       (line) => `
         <div>
-          <span>转发角度</span>
+          <span>今日看点</span>
           <strong>${line}</strong>
         </div>
       `,
@@ -1504,7 +1504,7 @@ function renderMatch(result) {
   }
   root.classList.remove("hidden");
   root.innerHTML = `
-    <span>你和朋友的匹配</span>
+    <span>状态码匹配</span>
     <strong>${result.match.score}% / ${result.match.title}</strong>
     <p>${result.match.copy}</p>
   `;
@@ -1530,7 +1530,7 @@ function renderResultExtras(result) {
   if (reasonsRoot) {
     reasonsRoot.innerHTML = `
       <div class="insight-head">
-        <span>朋友能看懂什么</span>
+        <span>这张卡在说什么</span>
         <strong>${result.identity.typeCode} / ${result.identity.coreName}</strong>
       </div>
       ${result.shareReasons
@@ -1549,7 +1549,7 @@ function renderResultExtras(result) {
   const challengeRoot = qs("#challengeCard");
   if (challengeRoot) {
     challengeRoot.innerHTML = `
-      <span>好友挑战</span>
+      <span>今日状态码</span>
       <strong>${result.challenge.title}</strong>
       <p>${result.challenge.copy}</p>
     `;
@@ -1591,7 +1591,7 @@ async function copyShareText() {
   const text = buildShareText(state.result);
   const copied = await writeClipboard(text);
   if (copied) {
-    showToast("分享文案已复制");
+    showToast("今日文案已复制");
     sendEvent("copy_share_success", { template: state.posterTemplate, tone: state.tone });
     sendEvent("result_share_intent", { action: "copy_share" });
   } else {
@@ -1631,7 +1631,7 @@ async function writeClipboard(text) {
 async function saveShareImage() {
   if (state.isSavingPoster) return;
   const button = qs("#saveImageBtn");
-  const originalText = button?.textContent || "保存当前海报";
+  const originalText = button?.textContent || "保存当前状态卡";
   state.isSavingPoster = true;
   if (button) {
     button.disabled = true;
@@ -1652,7 +1652,7 @@ async function saveShareImage() {
     sendEvent("save_poster", { template: state.posterTemplate, tone: state.tone });
     sendEvent("result_share_intent", { action: "save_poster" });
   } catch {
-    showToast("保存受限，已保留预览图，可截图分享");
+    showToast("保存受限，已保留预览图，可直接截图保存");
     sendEvent("save_poster_fail", { template: state.posterTemplate, tone: state.tone });
   } finally {
     state.isSavingPoster = false;
@@ -1689,7 +1689,7 @@ function reservePremium() {
 }
 
 async function copyPremiumCode() {
-  const code = `活着么内测口令：${state.shareId.toUpperCase()}，我想看完整好友关系`;
+  const code = `活着么内测口令：${state.shareId.toUpperCase()}，我想看完整关系图`;
   const copied = await writeClipboard(code);
   showToast(copied ? "内测口令已复制" : code);
   sendEvent("payment_provider_click", { action: "copy_premium_code" });
@@ -1810,7 +1810,7 @@ async function renderDesktopQr() {
     const data = await response.json();
     if (!data.dataUrl) return;
     root.classList.add("has-image");
-    root.innerHTML = `<img src="${data.dataUrl}" alt="当前页面分享二维码" />`;
+    root.innerHTML = `<img src="${data.dataUrl}" alt="当前页面二维码" />`;
   } catch {
     renderMiniQr(root, state.shareId);
   }
@@ -1819,7 +1819,7 @@ async function renderDesktopQr() {
 async function copyDesktopLink() {
   const link = buildShareUrl("desktop");
   const copied = await writeClipboard(link);
-  showToast(copied ? "链接已复制，可以发给朋友了" : link);
+  showToast(copied ? "当前链接已复制" : link);
   sendEvent(copied ? "copy_share_success" : "copy_share_fail", {
     action: "desktop_copy_link",
     source: "desktop_rail",
@@ -2010,7 +2010,7 @@ function drawShareCanvas(result, template = "classic") {
 
   ctx.fillStyle = result.theme.color;
   ctx.font = "900 34px system-ui, sans-serif";
-  ctx.fillText("适合发出去的那句", 72, 1300);
+  ctx.fillText("今日嘴替句", 72, 1300);
   ctx.fillStyle = "#f2efd7";
   ctx.font = "800 32px system-ui, sans-serif";
   wrapText(ctx, result.shareLine, 72, 1344, 690, 40, 2);
@@ -2020,7 +2020,7 @@ function drawShareCanvas(result, template = "classic") {
   ctx.font = "700 24px system-ui, sans-serif";
   ctx.fillText(buildDisplayLink(), 72, h - 24);
   ctx.textAlign = "right";
-  ctx.fillText("扫码也测一个", w - 72, h - 24);
+  ctx.fillText("查看今日状态", w - 72, h - 24);
   ctx.textAlign = "left";
 
   return canvas;
@@ -2105,7 +2105,7 @@ function buildIdentityResult(profile, answers, score, tier, seed) {
     if (/(消息|通知|老板|客户|社交|回复|群|meeting|微信)/i.test(text)) scores.trigger += force;
     if (/(ddl|截止|考试|作业|kpi|绩效|周报|任务|deadline|汇报)/i.test(text)) scores.trigger -= force;
 
-    if (/(社交|聚|聊|朋友|同学|同事|人类|约饭)/i.test(text)) scores.social += value >= 2 ? force : -force;
+    if (/(社交|聚|聊|熟人|同学|同事|人类|约饭)/i.test(text)) scores.social += value >= 2 ? force : -force;
     if (/(假装|静音|不回|沉默|天花板|离线|隐身)/i.test(text)) scores.social -= force * 0.8;
 
     if (/(睡|夜|作息|吃|饭|热饭|休息|被窝|澡)/i.test(text)) scores.recovery += value <= 4 ? force : force * 0.35;
@@ -2207,7 +2207,7 @@ function buildIdentityMatch(typeCode, entryTypeCode, seed) {
   const complement = 7 - same;
   const score = clamp(48 + same * 6 + complement * 3 + (seed % 13), 38, 96);
   const title = same >= 5 ? "同频省电搭子" : complement >= 4 ? "互补救援搭子" : "互相观察搭子";
-  const copy = `你是 ${typeCode}，朋友是 ${entryTypeCode}。${same >= 5 ? "你们很容易一起进入同一种状态。" : "你们更像一个负责提醒，一个负责下线。"}`;
+  const copy = `你是 ${typeCode}，对方是 ${entryTypeCode}。${same >= 5 ? "你们很容易一起进入同一种状态。" : "你们更像一个负责提醒，一个负责下线。"}`;
   return { score, title, copy };
 }
 
@@ -2254,7 +2254,7 @@ function renderEntryChallenge() {
   document.body.classList.add("has-entry-challenge");
   root.classList.remove("hidden");
   root.innerHTML = `
-    <span>朋友发来的测试</span>
+    <span>来自状态码邀请</span>
     <strong>${state.entryTypeCode}</strong>
     <p>TA 的类型是 ${buildIdentityNameFromCode(state.entryTypeCode)}。测完就能看你们合不合拍。</p>
   `;
@@ -2278,9 +2278,9 @@ function buildRailLiveLines(theme, city, seed) {
   const minutes = [2, 5, 8, 12];
   const lines = [
     `${city}${theme.label}测出「低亮营业重启型」`,
-    `有人生成了状态海报，准备发给朋友`,
+    `有人生成了今日状态卡`,
     `${theme.label}今日最常见耗电点：${pick(theme.causes, seed + 3)}`,
-    `刚有人复制了好友匹配链接`,
+    `刚有人查看了同频匹配入口`,
   ];
   return lines.map((text, index) => ({
     time: `${minutes[index]} 分钟前`,
@@ -2301,12 +2301,12 @@ function sanitizeParam(value) {
 function buildResultSlices(profile, score, tier, seed, answers, identity) {
   const weakest = [...answers].sort((a, b) => a.value - b.value)[0];
   const strongest = [...answers].sort((a, b) => b.value - a.value)[0];
-  const shareHeat = tier === "high" ? "适合炫耀" : tier === "mid" ? "适合自嘲" : "适合求抱团";
+  const expressionMode = tier === "high" ? "可以小小得意" : tier === "mid" ? "适合认真自嘲" : "适合先别硬撑";
   return [
     {
       label: "你的类型",
       value: identity.coreName,
-      copy: `${identity.typeCode} 是你的今日状态码。朋友测完后，可以拿它和你做匹配。`,
+      copy: `${identity.typeCode} 是你的今日状态码。输入另一个状态码后，可以查看匹配度。`,
     },
     {
       label: "最耗你的事",
@@ -2314,9 +2314,9 @@ function buildResultSlices(profile, score, tier, seed, answers, identity) {
       copy: weakest ? `今天最拖你后腿的是「${weakest.dimension}」，所以报告会重点吐槽它。` : "今天没有特别明显的短板，整体只是有点波动。",
     },
     {
-      label: "适合怎么发",
-      value: shareHeat,
-      copy: strongest ? `最有梗的是「${strongest.dimension}」，适合当朋友圈第一句。` : `今日电量 ${score}/100，适合发出去当状态说明。`,
+      label: "今日表达",
+      value: expressionMode,
+      copy: strongest ? `最有梗的是「${strongest.dimension}」，这一句最像今天的你。` : `今日电量 ${score}/100，适合留作今天的状态说明。`,
     },
   ];
 }
@@ -2324,15 +2324,15 @@ function buildResultSlices(profile, score, tier, seed, answers, identity) {
 function buildShareReasons(profile, score, tier, seed, identity) {
   const content = themeBriefs[profile.themeId] || themeBriefs.worker;
   const reasonByTier = {
-    high: "你今天少见地还挺在线，适合发出去刺激一下朋友。",
+    high: "你今天少见地还挺在线，读起来有点欠揍但真实。",
     mid: "分数不高不低，最像大家愿意接梗的真实状态。",
-    low: "低电量结果最容易让朋友回一句：我也是。",
+    low: "低电量结果很像一句不用解释的叹气。",
   };
   return [
     { label: "你的类型", value: `${identity.typeCode} / ${identity.coreName}` },
     { label: "今日梗点", value: pick(content.signals, seed + 11) },
-    { label: "朋友会接话", value: reasonByTier[tier] },
-    { label: "还能匹配", value: "朋友点链接测完，会看到和你的匹配度" },
+    { label: "读起来像", value: reasonByTier[tier] },
+    { label: "还能对照", value: "输入另一个状态码，可以看到两种状态的匹配度" },
   ];
 }
 
@@ -2343,7 +2343,7 @@ function buildChallenge(profile, score, tier, seed, identity) {
     "谁今天更低亮，谁拥有提前下线资格。",
   ];
   return {
-    title: `把 ${identity.typeCode} 发给朋友`,
+    title: `今日状态码：${identity.typeCode}`,
     copy: `${profile.city}${profile.persona}今天的状态出炉了。${pick(endings, seed + 17)}`,
   };
 }

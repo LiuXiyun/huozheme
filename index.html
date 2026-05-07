@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#101114" />
-    <meta name="description" content="每天 10 秒做 5 道小题，生成一张能发给朋友的今日状态报告。" />
+    <meta name="description" content="每天 10 秒做 5 道小题，生成你的今日状态报告。" />
     <meta property="og:title" content="活着么" />
     <meta property="og:description" content="5 道小题，测出你的今日状态类型。" />
     <title>活着么</title>
@@ -28,11 +28,11 @@
             <span>10 秒状态测试</span>
           </div>
           <h1>活着么</h1>
-          <p class="tagline">做 5 道小题，生成一张能发给朋友的今日状态报告。</p>
+          <p class="tagline">做 5 道小题，生成你的今日状态报告。</p>
           <div class="hero-proof-strip" aria-label="玩法亮点">
             <span>5 题出结果</span>
-            <span>好友能匹配</span>
-            <span>海报可保存</span>
+            <span>类型可匹配</span>
+            <span>状态卡可保存</span>
           </div>
           <div class="challenge-entry-card hidden" id="entryChallengeCard"></div>
 
@@ -78,7 +78,7 @@
               <span>你会测到</span>
               <strong id="briefTitle">打工人今日状态</strong>
             </div>
-            <p id="briefCopy">根据睡眠、通勤、会议和余额，生成一张适合发出去的状态卡。</p>
+            <p id="briefCopy">根据睡眠、通勤、会议和余额，生成一张今日状态卡。</p>
             <div class="brief-tags" id="briefTags"></div>
           </div>
         </div>
@@ -121,8 +121,8 @@
               <div class="tile-visual report-visual" aria-hidden="true">
                 <span></span><span></span><span></span>
               </div>
-              <strong>状态海报</strong>
-              <p>测完直接生成一张可分享图片。</p>
+              <strong>状态卡</strong>
+              <p>测完直接生成一张可保存图片。</p>
             </div>
             <div class="feature-tile">
               <div class="tile-visual rank-visual" aria-hidden="true">
@@ -142,8 +142,8 @@
               <div class="tile-visual report-visual" aria-hidden="true">
                 <span></span><span></span><span></span>
               </div>
-              <strong>好友匹配</strong>
-              <p>朋友测完后，会显示你们的匹配度。</p>
+              <strong>同频匹配</strong>
+              <p>输入状态码后，会显示两种状态的匹配度。</p>
             </div>
           </div>
         </aside>
@@ -239,39 +239,39 @@
         <aside class="result-panel">
           <div class="match-card hidden" id="matchCard"></div>
           <div class="share-panel">
-            <span>适合发出去的那句</span>
+            <span>今日嘴替句</span>
             <p id="shareCopy"></p>
           </div>
           <div class="relation-preview" id="relationPreview"></div>
-          <div class="insight-stack" id="shareReasons" aria-label="传播理由"></div>
+          <div class="insight-stack" id="shareReasons" aria-label="结果亮点"></div>
           <div class="poster-studio">
             <div class="studio-head">
               <div>
-              <span>分享海报</span>
-                <strong>选一种风格，保存或复制文案</strong>
+              <span>状态卡片</span>
+                <strong>选一种风格，留一张今日记录</strong>
               </div>
               <button class="tiny-action" id="refreshCopyBtn" type="button">换一句</button>
             </div>
             <div class="poster-preview-shell">
-              <canvas id="posterPreview" width="540" height="720" role="img" aria-label="分享图预览"></canvas>
+              <canvas id="posterPreview" width="540" height="720" role="img" aria-label="状态卡预览"></canvas>
             </div>
             <div class="poster-output hidden" id="posterOutput">
-              <img id="posterImage" alt="已生成的分享海报" />
-              <span>长按图片可保存，复制文案会带上测试链接。</span>
+              <img id="posterImage" alt="已生成的状态卡" />
+              <span>长按图片可保存，复制文案会带上今日状态。</span>
             </div>
-            <div class="template-switch" id="templateSwitch" aria-label="分享图模板"></div>
+            <div class="template-switch" id="templateSwitch" aria-label="状态卡模板"></div>
             <div class="tone-switch" id="toneSwitch" aria-label="毒舌强度"></div>
           </div>
           <div class="result-actions">
-            <button class="primary-action" id="saveImageBtn" type="button">保存当前海报</button>
-            <button class="ghost-action" id="copyShareBtn" type="button">复制分享文案</button>
+            <button class="primary-action" id="saveImageBtn" type="button">保存当前状态卡</button>
+            <button class="ghost-action" id="copyShareBtn" type="button">复制今日文案</button>
             <button class="ghost-action" id="againBtn" type="button">再测一次</button>
           </div>
           <div class="challenge-card" id="challengeCard"></div>
           <div class="premium-card">
             <div>
               <span>隐藏关系</span>
-              <strong>看完整好友关系</strong>
+              <strong>看完整关系图</strong>
               <p>谁能救你、谁会消耗你、谁会和你一起低电量。</p>
             </div>
             <div class="premium-value-grid">
@@ -284,7 +284,7 @@
                 <strong>今天和你同型的人</strong>
               </div>
               <div>
-                <span>分享文案</span>
+                <span>嘴替文案</span>
                 <strong>3 种语气可切换</strong>
               </div>
               <div>
@@ -313,8 +313,8 @@
         <div class="modal-card">
           <button class="modal-close" id="closePremiumBtn" type="button" aria-label="关闭">×</button>
           <span class="modal-kicker">9.9 内测价</span>
-          <h2 id="premiumTitle">看完整好友关系</h2>
-          <p>解锁谁最适合救你、谁最容易消耗你，以及你和朋友的隐藏匹配解释。锁定后保留今日内测价。</p>
+          <h2 id="premiumTitle">看完整关系图</h2>
+          <p>解锁谁最适合救你、谁最容易消耗你，以及不同状态之间的隐藏匹配解释。锁定后保留今日内测价。</p>
           <div class="premium-preview-grid">
             <div>
               <span>关系卡</span>
@@ -325,7 +325,7 @@
               <strong>1 份</strong>
             </div>
             <div>
-              <span>分享文案</span>
+              <span>嘴替文案</span>
               <strong>3 条</strong>
             </div>
           </div>
@@ -371,21 +371,21 @@
           </div>
         </div>
         <div class="rail-qr-card">
-          <div class="mini-qr" id="desktopQr" aria-label="当前页面分享二维码"></div>
+          <div class="mini-qr" id="desktopQr" aria-label="当前页面二维码"></div>
           <div>
-            <span>手机打开 / 发给朋友</span>
+            <span>手机打开</span>
             <strong id="railShareId">--</strong>
             <p id="railShortLink">huozheme.today</p>
-            <button class="tiny-action" id="desktopCopyBtn" type="button">复制链接</button>
+            <button class="tiny-action" id="desktopCopyBtn" type="button">复制当前链接</button>
           </div>
         </div>
         <div class="rail-hooks">
           <span>测完会得到</span>
-          <strong>今日类型、状态海报、好友匹配和隐藏关系入口</strong>
+          <strong>今日类型、状态卡、同频匹配和隐藏关系入口</strong>
         </div>
         <div class="rail-type-board" id="railTypeBoard" aria-label="今日热门类型"></div>
         <div class="rail-live-feed" id="railLiveFeed" aria-label="最新匿名报告"></div>
-        <div class="rail-get-card" id="railGetCard" aria-label="扫码后能得到什么"></div>
+        <div class="rail-get-card" id="railGetCard" aria-label="手机端包含什么"></div>
         <div class="rail-feed" id="railFeed" aria-label="今日内容预告"></div>
       </aside>
     </main>
