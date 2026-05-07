@@ -2630,6 +2630,134 @@ body {
   }
 }
 
+/* UX readability pass */
+.phone-stage .brand-row {
+  margin-bottom: 12px;
+}
+
+.phone-stage .hero-copy {
+  padding: 18px 20px 12px;
+}
+
+.phone-stage h1 {
+  font-size: clamp(64px, 18vw, 78px);
+}
+
+.phone-stage .tagline {
+  margin: 10px 0 14px;
+  font-size: clamp(18px, 5vw, 21px);
+  line-height: 1.34;
+}
+
+.hero-proof-strip {
+  margin-bottom: 14px;
+}
+
+.hero-proof-strip span {
+  min-height: 34px;
+  padding: 0 6px;
+  font-size: 11px;
+}
+
+.phone-stage .theme-grid,
+.phone-stage .setup-form {
+  gap: 8px;
+}
+
+.phone-stage .theme-button {
+  min-height: 62px;
+  padding: 10px;
+}
+
+.phone-stage .theme-button strong {
+  margin-bottom: 4px;
+  font-size: 16px;
+}
+
+.phone-stage .theme-button span {
+  font-size: 11px;
+}
+
+.phone-stage .field {
+  gap: 6px;
+}
+
+.phone-stage .field select {
+  min-height: 56px;
+  padding: 0 12px;
+}
+
+.phone-stage .primary-action {
+  min-height: 52px;
+  font-size: 17px;
+}
+
+.phone-stage .theme-brief {
+  margin-top: 10px;
+  padding: 12px;
+}
+
+.phone-stage .hero-lab {
+  padding: 0 20px 18px;
+}
+
+.phone-stage .quiz-card {
+  padding: 20px;
+}
+
+.phone-stage .quiz-card h2 {
+  min-height: 72px;
+  margin-bottom: 18px;
+  font-size: clamp(28px, 7.5vw, 34px);
+  line-height: 1.14;
+}
+
+.phone-stage .option-grid {
+  gap: 10px;
+}
+
+.phone-stage .option-button {
+  min-height: 60px;
+  padding: 13px 14px;
+}
+
+.phone-stage .question-context {
+  margin-top: 12px;
+}
+
+.phone-stage .identity-code-progress span {
+  height: 30px;
+  border-radius: 8px;
+}
+
+.report-card > p,
+.result-deep-grid p,
+.share-panel p,
+.premium-card p,
+.challenge-card p,
+.match-card p,
+.relation-head p {
+  font-weight: 650;
+}
+
+.rank-footnote {
+  line-height: 1.45;
+}
+
+@media (max-width: 360px) {
+  .phone-stage h1 {
+    font-size: 56px;
+  }
+
+  .phone-stage .hero-copy {
+    padding: 14px;
+  }
+
+  .hero-proof-strip {
+    display: none;
+  }
+}
+
 .hidden {
   display: none !important;
 }

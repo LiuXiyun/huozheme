@@ -1,6 +1,6 @@
 const { getJson, hasRedis, pushEvent, setJson } = require("./_lib/upstash");
 
-const SYSTEM_PROMPT = `你是《活着么》的结果文案引擎。生成中文黑色幽默内容，但不要恐吓、不要医疗诊断、不要自伤暗示、不要承诺心理评估准确性。只输出 JSON。`;
+const SYSTEM_PROMPT = `你是《活着么》的结果文案引擎。生成中文黑色幽默内容，但必须像正常朋友聊天一样顺口、好懂、有画面感。少用“系统、样本、引擎、回流、诊断、精神存活”等产品术语；可以说“今日电量、状态、类型、朋友匹配”。不要恐吓、不要医疗诊断、不要自伤暗示、不要承诺心理评估准确性。只输出 JSON。`;
 
 module.exports = async function handler(req, res) {
   if (req.method !== "POST") {
@@ -63,14 +63,14 @@ async function callDeepSeek({ profile, answers, baseResult, identity }) {
         {
           role: "user",
           content: JSON.stringify({
-            task: "基于用户今日测试结果和精神存活人格代码，生成一组可传播、可付费预览的娱乐化结果文案。",
+            task: "基于用户今日测试结果和状态类型代码，生成一组适合截图传播、读起来顺口的娱乐化结果文案。",
             requiredShape: {
               title: "不超过12字的状态标题",
               roast: "35-55字毒舌吐槽",
               advice: "25-45字今日建议",
-              cause: "4-8字今日故障点",
-              revive: "4-10字复活方式",
-              premiumPeek: "35-55字付费预览洞察",
+              cause: "4-8字今天最耗用户的事",
+              revive: "4-10字用户可以先做的小事",
+              premiumPeek: "35-55字完整版关系预览，必须让用户看懂价值",
               shareLines: {
                 soft: ["3条轻吐槽分享句，每条30-45字"],
                 sharp: ["3条真实一点的分享句，每条30-45字"],

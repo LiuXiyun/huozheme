@@ -4,9 +4,9 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#101114" />
-    <meta name="description" content="每天 10 秒测出你的 128 型精神存活人格，生成可分享的人格代码海报。" />
+    <meta name="description" content="每天 10 秒做 5 道小题，生成一张能发给朋友的今日状态报告。" />
     <meta property="og:title" content="活着么" />
-    <meta property="og:description" content="测出你的精神存活人格代码" />
+    <meta property="og:description" content="5 道小题，测出你的今日状态类型。" />
     <title>活着么</title>
     <link rel="stylesheet" href="./styles.css" />
   </head>
@@ -18,28 +18,28 @@
             <img class="brand-logo" src="./assets/logo-mark.svg" alt="活着么 logo" />
             <strong>活着么</strong>
           </div>
-          <div class="topbar-status" id="topbarStatus">今日题库待生成</div>
+          <div class="topbar-status" id="topbarStatus">今日可测</div>
         </header>
         <section class="page hero-page" id="startView" data-testid="start-view">
         <div class="scan-grid" aria-hidden="true"></div>
         <div class="hero-copy">
           <div class="brand-row">
             <img class="brand-logo hero-logo" src="./assets/logo-mark.svg" alt="" aria-hidden="true" />
-            <span>每日精神存活站</span>
+            <span>10 秒状态测试</span>
           </div>
           <h1>活着么</h1>
-          <p class="tagline">测出你的 7 位精神存活代码，看看你今天到底是什么型。</p>
+          <p class="tagline">做 5 道小题，生成一张能发给朋友的今日状态报告。</p>
           <div class="hero-proof-strip" aria-label="玩法亮点">
-            <span>128 型人格</span>
-            <span>好友可匹配</span>
-            <span>海报带回流码</span>
+            <span>5 题出结果</span>
+            <span>好友能匹配</span>
+            <span>海报可保存</span>
           </div>
           <div class="challenge-entry-card hidden" id="entryChallengeCard"></div>
 
           <form class="setup-form" id="setupForm">
             <div class="theme-field">
-              <span class="field-label">今日剧本</span>
-              <div class="theme-grid" id="themeGrid" role="radiogroup" aria-label="今日剧本"></div>
+              <span class="field-label">选择场景</span>
+              <div class="theme-grid" id="themeGrid" role="radiogroup" aria-label="选择场景"></div>
             </div>
 
             <label class="field">
@@ -71,27 +71,27 @@
               </select>
             </label>
 
-            <button class="primary-action" type="submit" data-testid="start-test">开始生成我的代码</button>
+            <button class="primary-action" type="submit" data-testid="start-test">开始测试</button>
           </form>
           <div class="theme-brief" id="themeBrief" aria-live="polite">
             <div>
-              <span>当前剧本</span>
-              <strong id="briefTitle">打工人今日精神巡检</strong>
+              <span>你会测到</span>
+              <strong id="briefTitle">打工人今日状态</strong>
             </div>
-            <p id="briefCopy">从睡眠、通勤、会议和余额里抽样，生成一份适合发出去的状态报告。</p>
+            <p id="briefCopy">根据睡眠、通勤、会议和余额，生成一张适合发出去的状态卡。</p>
             <div class="brief-tags" id="briefTags"></div>
           </div>
         </div>
 
-        <aside class="hero-lab" aria-label="今日精神播报">
-          <div class="sample-note" id="sampleNote">今日样本由冷启动基数与真实完成量累加</div>
+        <aside class="hero-lab" aria-label="今日状态播报">
+          <div class="sample-note" id="sampleNote">今日热度会随完成人数增加</div>
           <div class="live-board">
             <div>
-              <span>今日样本</span>
+              <span>今天测过</span>
               <strong id="todayTests">--</strong>
             </div>
             <div>
-              <span>平均指数</span>
+              <span>平均电量</span>
               <strong id="todayAverage">--</strong>
             </div>
             <div>
@@ -104,7 +104,7 @@
 
           <div class="sample-report">
             <div class="sample-topline">
-              <span>报告样张</span>
+              <span>示例报告</span>
               <span id="sampleDate"></span>
             </div>
             <div class="sample-score" id="sampleScore">37</div>
@@ -112,7 +112,7 @@
             <p id="sampleText">系统检测到你正在以最低亮度运行人生。</p>
             <div class="sample-tags">
               <span id="samplePersona">上海打工人</span>
-              <span id="sampleBeat">今日同城样本击败 12%</span>
+              <span id="sampleBeat">高于同城 12% 用户</span>
             </div>
           </div>
 
@@ -121,29 +121,29 @@
               <div class="tile-visual report-visual" aria-hidden="true">
                 <span></span><span></span><span></span>
               </div>
-              <strong>人格海报</strong>
-              <p>主视觉展示 7 位代码和中文人格名。</p>
+              <strong>状态海报</strong>
+              <p>测完直接生成一张可分享图片。</p>
             </div>
             <div class="feature-tile">
               <div class="tile-visual rank-visual" aria-hidden="true">
                 <i style="height: 32%"></i><i style="height: 68%"></i><i style="height: 46%"></i>
               </div>
-              <strong>撞型榜</strong>
-              <p>看同城有多少人和你今天同型。</p>
+              <strong>同型人数</strong>
+              <p>看看今天有多少人和你一样。</p>
             </div>
             <div class="feature-tile">
               <div class="tile-visual unlock-visual" aria-hidden="true">
                 <span>9.9</span>
               </div>
-              <strong>关系图谱</strong>
-              <p>谁救你、谁耗你、谁和你一起崩。</p>
+              <strong>隐藏关系</strong>
+              <p>看谁适合把你从低电量里捞出来。</p>
             </div>
             <div class="feature-tile">
               <div class="tile-visual report-visual" aria-hidden="true">
                 <span></span><span></span><span></span>
               </div>
               <strong>好友匹配</strong>
-              <p>链接带人格代码，好友测完直接匹配。</p>
+              <p>朋友测完后，会显示你们的匹配度。</p>
             </div>
           </div>
         </aside>
@@ -153,17 +153,17 @@
         <div class="quiz-card">
           <div class="quiz-topline">
             <button class="back-action" id="prevQuestionBtn" type="button" disabled>上一题</button>
-            <span id="quizMeta">今日剧本</span>
+            <span id="quizMeta">今日测试</span>
           </div>
           <div class="progress-copy">
             <span id="questionCounter">1/5</span>
-            <strong id="progressMood">正在生成 7 位代码</strong>
+            <strong id="progressMood">按第一反应选</strong>
           </div>
           <div class="progress-track"><div class="progress-bar" id="progressBar"></div></div>
           <div class="answer-feedback hidden" id="answerFeedback"></div>
           <div class="identity-code-progress" id="identityCodeProgress" aria-label="人格代码生成进度"></div>
           <div class="question-context">
-            <span>本题校准</span>
+            <span>本题看什么</span>
             <strong id="questionFactor">睡眠电量</strong>
             <p id="questionHint">选择后自动进入下一题，整套题约 10 秒。</p>
           </div>
@@ -176,21 +176,21 @@
         <section class="page result-page hidden" id="resultView" data-testid="result-view">
         <div class="report-card" id="reportCard">
           <div class="report-header">
-            <span id="reportTheme">今日精神存活人格</span>
+            <span id="reportTheme">你的今日状态报告</span>
             <time id="reportDate"></time>
           </div>
           <div class="identity-hero" id="identityHero">
-            <span>你的精神存活代码</span>
+            <span>你的今日类型</span>
             <div class="identity-code" id="identityCode">LMISFNW</div>
             <h2 id="identityName">通知过敏省电型</h2>
             <p id="identityCopy">随缘静音许愿人，今日正在以最低亮度保护系统。</p>
             <div class="identity-meta-grid">
               <div>
-                <span>同城稀有度</span>
+                <span>同城同型率</span>
                 <strong id="identityRarity">--</strong>
               </div>
               <div>
-                <span>撞型样本</span>
+                <span>同型人数</span>
                 <strong id="identityTwins">--</strong>
               </div>
             </div>
@@ -198,7 +198,7 @@
           <div class="score-row">
             <div class="score-ring" id="scoreRing">
               <span id="scoreValue">0</span>
-              <small>存活指数</small>
+              <small>今日电量</small>
             </div>
             <div class="risk-stamp" id="riskStamp"></div>
           </div>
@@ -218,22 +218,22 @@
           <div class="rank-footnote" id="rankFootnote"></div>
           <div class="signal-list">
             <div>
-              <span>今日故障点</span>
+              <span>今天最耗你</span>
               <strong id="causeText"></strong>
             </div>
             <div>
-              <span>复活方式</span>
+              <span>先做这件事</span>
               <strong id="reviveText"></strong>
             </div>
           </div>
           <div class="advice-box">
-            <span>今日建议</span>
+            <span>给你的建议</span>
             <p id="adviceText"></p>
           </div>
           <div class="diagnosis-grid" id="diagnosisGrid"></div>
           <div class="identity-axis-grid" id="identityAxisGrid"></div>
           <div class="result-deep-grid" id="resultDeepGrid"></div>
-          <div class="report-footer">huozheme.today</div>
+          <div class="report-footer">活着么 H5</div>
         </div>
 
         <aside class="result-panel">
@@ -247,8 +247,8 @@
           <div class="poster-studio">
             <div class="studio-head">
               <div>
-              <span>分享图工厂</span>
-                <strong>选一个最想发的人格卡</strong>
+              <span>分享海报</span>
+                <strong>选一种风格，保存或复制文案</strong>
               </div>
               <button class="tiny-action" id="refreshCopyBtn" type="button">换一句</button>
             </div>
@@ -270,37 +270,37 @@
           <div class="challenge-card" id="challengeCard"></div>
           <div class="premium-card">
             <div>
-              <span>关系图谱</span>
-              <strong>解锁完整好友匹配</strong>
-              <p>谁救你、谁耗你、谁和你一起崩，以及你的反向互补人格。</p>
+              <span>隐藏关系</span>
+              <strong>看完整好友关系</strong>
+              <p>谁能救你、谁会消耗你、谁会和你一起低电量。</p>
             </div>
             <div class="premium-value-grid">
               <div>
                 <span>关系卡</span>
-                <strong>4 张好友关系</strong>
+                <strong>4 张关系卡</strong>
               </div>
               <div>
                 <span>同型画像</span>
-                <strong>今日同型人群</strong>
+                <strong>今天和你同型的人</strong>
               </div>
               <div>
-                <span>黑化文案</span>
-                <strong>3 种语气一键换</strong>
+                <span>分享文案</span>
+                <strong>3 种语气可切换</strong>
               </div>
               <div>
-                <span>互补人格</span>
-                <strong>谁能把你捞起来</strong>
+                <span>互补类型</span>
+                <strong>谁最能帮你回血</strong>
               </div>
             </div>
             <div class="premium-peek">
-              <span>已生成 4 条关系洞察</span>
+              <span>已生成隐藏内容</span>
               <strong id="premiumPeekText">你最适合被高亮行动派从通知里捞出来。</strong>
             </div>
             <div class="premium-proof">
               <span id="premiumCount">--</span>
-              <strong>人今天锁定内测价</strong>
+              <strong>人今天想看完整版</strong>
             </div>
-            <button id="premiumBtn" type="button">9.9 解锁关系图谱</button>
+            <button id="premiumBtn" type="button">9.9 看完整关系</button>
           </div>
           <div class="return-card">
             <span>明日刷新</span>
@@ -313,8 +313,8 @@
         <div class="modal-card">
           <button class="modal-close" id="closePremiumBtn" type="button" aria-label="关闭">×</button>
           <span class="modal-kicker">9.9 内测价</span>
-          <h2 id="premiumTitle">解锁完整关系图谱</h2>
-          <p>查看谁救你、谁耗你、谁和你一起崩，以及你的反向互补人格。锁定后保留今日内测价与优先解锁资格。</p>
+          <h2 id="premiumTitle">看完整好友关系</h2>
+          <p>解锁谁最适合救你、谁最容易消耗你，以及你和朋友的隐藏匹配解释。锁定后保留今日内测价。</p>
           <div class="premium-preview-grid">
             <div>
               <span>关系卡</span>
@@ -325,7 +325,7 @@
               <strong>1 份</strong>
             </div>
             <div>
-              <span>黑化文案</span>
+              <span>分享文案</span>
               <strong>3 条</strong>
             </div>
           </div>
@@ -337,7 +337,7 @@
           <div class="modal-actions">
             <button class="primary-action" id="reservePremiumBtn" type="button">锁定 9.9 内测价</button>
             <button class="ghost-action" id="copyCodeBtn" type="button">复制内测口令</button>
-            <button class="ghost-action" id="wechatPayBtn" type="button">微信 9.9 通道</button>
+            <button class="ghost-action" id="wechatPayBtn" type="button">微信开通提醒</button>
           </div>
         </div>
         </section>
@@ -350,19 +350,19 @@
           <img class="brand-logo rail-logo" src="./assets/logo-mark.svg" alt="活着么 logo" />
           <div>
             <strong>活着么</strong>
-            <span>今日精神存活站</span>
+            <span>10 秒状态测试</span>
           </div>
         </div>
         <div class="rail-kicker">今日热度</div>
-        <h2>128 型精神存活人格测试</h2>
+        <h2>5 题生成你的今日状态报告</h2>
         <div class="rail-now" id="railNow"></div>
         <div class="rail-grid">
           <div>
-            <span>今日样本</span>
+            <span>今天测过</span>
             <strong id="railTests">--</strong>
           </div>
           <div>
-            <span>热门人格</span>
+            <span>热门类型</span>
             <strong id="railHotType">--</strong>
           </div>
           <div>
@@ -381,7 +381,7 @@
         </div>
         <div class="rail-hooks">
           <span>测完会得到</span>
-          <strong>人格代码、中文类型、好友匹配和关系图谱入口</strong>
+          <strong>今日类型、状态海报、好友匹配和隐藏关系入口</strong>
         </div>
         <div class="rail-feed" id="railFeed" aria-label="今日内容预告"></div>
       </aside>
