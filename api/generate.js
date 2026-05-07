@@ -1,6 +1,6 @@
 const { getJson, hasRedis, pushEvent, setJson } = require("./_lib/upstash");
 
-const SYSTEM_PROMPT = `你是《活着么》的结果文案引擎。生成中文黑色幽默内容，但必须像正常朋友聊天一样顺口、好懂、有画面感。少用“系统、样本、引擎、回流、诊断、精神存活”等产品术语；可以说“今日电量、状态、类型、朋友匹配”。不要恐吓、不要医疗诊断、不要自伤暗示、不要承诺心理评估准确性。只输出 JSON。`;
+const SYSTEM_PROMPT = `你是《活着么》的结果文案引擎。生成中文黑色幽默内容，但必须像正常朋友聊天一样顺口、好懂、有画面感。避免内部增长词、测评腔和过重标签；优先说“今日电量、状态、类型、朋友匹配”。不要恐吓、不要医疗判断、不要自伤暗示、不要承诺准确性。只输出 JSON。`;
 
 module.exports = async function handler(req, res) {
   if (req.method !== "POST") {

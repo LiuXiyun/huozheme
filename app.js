@@ -21,8 +21,13 @@ const state = {
   questionStartedAt: 0,
   qrDataUrl: "",
   qrImage: null,
+  qrUrl: "",
+  posterRenderToken: 0,
+  isSavingPoster: false,
   reservedPremium: false,
 };
+
+const shareQrCache = new Map();
 
 const posterTemplates = {
   classic: "报告卡",
@@ -61,7 +66,7 @@ const identityCoreNames = {
   LMIR: "深夜静音逃生型",
   LDOS: "拖延自嘲回血型",
   LDOR: "截止线边缘型",
-  LDIS: "被窝防御样本型",
+  LDIS: "被窝防御型",
   LDIR: "人生后台重启型",
 };
 
@@ -746,7 +751,7 @@ const shareLines = {
     low: "今天电量偏低，先别和世界硬碰硬。",
   },
   sharp: {
-    high: "今天精神存活指数在线，像刚升级过的人类样本。",
+    high: "今天状态在线，像刚给自己充过电。",
     mid: "今天精神状态没坏透，但已经需要轻拿轻放。",
     low: "今天不是没电，是被生活拔了插头还在假装联网。",
   },
@@ -863,6 +868,7 @@ function init() {
 
   setupForm.addEventListener("submit", (event) => {
     event.preventDefault();
+    clearToast();
     setTopbarStatus("进入测试");
     const submitButton = setupForm.querySelector("[data-testid='start-test']");
     if (submitButton) {
@@ -888,6 +894,8 @@ function init() {
     state.aiStatus = "idle";
     state.qrDataUrl = "";
     state.qrImage = null;
+    state.qrUrl = "";
+    state.posterRenderToken += 1;
     state.questionSource = "local";
     state.questions = selectLocalQuestions(state.activeTheme, 5);
     showQuiz();
@@ -909,6 +917,7 @@ function init() {
   qs("#prevQuestionBtn").addEventListener("click", goPreviousQuestion);
 
   qs("#againBtn").addEventListener("click", () => {
+    clearToast();
     state.answers = [];
     state.index = 0;
     resultView.classList.add("hidden");
@@ -1013,16 +1022,72 @@ function renderDailySignals() {
 function renderRailContent() {
   const nowRoot = qs("#railNow");
   const feedRoot = qs("#railFeed");
+  const typeRoot = qs("#railTypeBoard");
+  const liveRoot = qs("#railLiveFeed");
+  const getRoot = qs("#railGetCard");
   if (!nowRoot || !feedRoot) return;
   const theme = themes[state.activeTheme];
   const content = themeBriefs[state.activeTheme] || themeBriefs.worker;
   const city = qs("#city")?.value || theme.hotLine;
   const average = clamp(Number(state.stats.average || 42), 17, 98);
+  const seed = hash(`${dateKey}:${state.activeTheme}:${city}:rail`);
   nowRoot.innerHTML = `
     <span>当前场景</span>
     <strong>${city}${theme.label} / 今日平均 ${average} 分</strong>
     <p>${content.copy} 右侧二维码可直接在手机打开，也可以发给朋友一起测。</p>
   `;
+  if (typeRoot) {
+    const types = buildRailHotTypes(seed);
+    typeRoot.innerHTML = `
+      <div class="rail-section-head">
+        <span>今日热门类型</span>
+        <strong>${city}${theme.label}正在出现这些状态</strong>
+      </div>
+      <div class="rail-type-list">
+        ${types
+          .map(
+            (item) => `
+              <div>
+                <b>${item.code}</b>
+                <span>${item.name}</span>
+                <i>${item.count} 人</i>
+              </div>
+            `,
+          )
+          .join("")}
+      </div>
+    `;
+  }
+  if (liveRoot) {
+    const lines = buildRailLiveLines(theme, city, seed);
+    liveRoot.innerHTML = `
+      <div class="rail-section-head">
+        <span>最新匿名报告</span>
+        <strong>刚刚有人测出了这些结果</strong>
+      </div>
+      ${lines
+        .map(
+          (item) => `
+            <div class="rail-live-row">
+              <span>${item.time}</span>
+              <strong>${item.text}</strong>
+            </div>
+          `,
+        )
+        .join("")}
+    `;
+  }
+  if (getRoot) {
+    getRoot.innerHTML = `
+      <span>扫码后能得到什么</span>
+      <div>
+        <strong>今日类型</strong>
+        <strong>可保存海报</strong>
+        <strong>好友匹配</strong>
+        <strong>隐藏关系</strong>
+      </div>
+    `;
+  }
   feedRoot.innerHTML = content.railFeed
     .map(
       (line) => `
@@ -1272,6 +1337,7 @@ function buildAnswerFeedback(value) {
 }
 
 function showResult() {
+  clearToast();
   quizView.classList.add("hidden");
   resultView.classList.remove("hidden");
   state.result = calculateResult();
@@ -1357,8 +1423,8 @@ function renderResult(result) {
   qs("#cityRank").textContent = `${result.cityBeat}%`;
   qs("#cityRankLabel").textContent = `高于${result.city}今日用户`;
   qs("#personaRank").textContent = `${result.personaBeat}%`;
-  qs("#personaRankLabel").textContent = `高于${result.persona}同类用户`;
-  qs("#rankFootnote").textContent = `今日样本 ${result.rankSample || state.stats.tests || "--"} 份，仅供娱乐参考`;
+  qs("#personaRankLabel").textContent = `高于${result.persona}用户`;
+  qs("#rankFootnote").textContent = `今日参与 ${result.rankSample || state.stats.tests || "--"} 人，仅供娱乐参考`;
   qs("#causeText").textContent = result.cause;
   qs("#reviveText").textContent = result.revive;
   qs("#adviceText").textContent = result.advice;
@@ -1498,12 +1564,27 @@ function updateShareCopy() {
 
 async function updatePosterPreview() {
   if (!state.result) return;
-  await ensureShareQr();
+  const token = ++state.posterRenderToken;
+  drawPosterPreview();
+  if (!hasCurrentShareQr()) {
+    ensureShareQr().then(() => {
+      if (token === state.posterRenderToken) drawPosterPreview();
+    });
+  }
+}
+
+function drawPosterPreview() {
+  if (!state.result) return;
   const canvas = drawShareCanvas(state.result, state.posterTemplate);
   const preview = qs("#posterPreview");
   const ctx = preview.getContext("2d");
   ctx.clearRect(0, 0, preview.width, preview.height);
   ctx.drawImage(canvas, 0, 0, preview.width, preview.height);
+}
+
+function hasCurrentShareQr() {
+  const url = buildShareUrl("poster");
+  return Boolean(state.qrImage && state.qrUrl === url);
 }
 
 async function copyShareText() {
@@ -1548,6 +1629,14 @@ async function writeClipboard(text) {
 }
 
 async function saveShareImage() {
+  if (state.isSavingPoster) return;
+  const button = qs("#saveImageBtn");
+  const originalText = button?.textContent || "保存当前海报";
+  state.isSavingPoster = true;
+  if (button) {
+    button.disabled = true;
+    button.textContent = "生成中...";
+  }
   try {
     await ensureShareQr();
     const canvas = drawShareCanvas(state.result, state.posterTemplate);
@@ -1565,16 +1654,24 @@ async function saveShareImage() {
   } catch {
     showToast("保存受限，已保留预览图，可截图分享");
     sendEvent("save_poster_fail", { template: state.posterTemplate, tone: state.tone });
+  } finally {
+    state.isSavingPoster = false;
+    if (button) {
+      button.disabled = false;
+      button.textContent = originalText;
+    }
   }
 }
 
 function openPremiumModal() {
+  clearToast();
   premiumModal.classList.remove("hidden");
   sendEvent("open_premium", { score: state.result?.score, scoreBucket: state.result?.scoreBucket });
 }
 
 function closePremiumModal() {
   premiumModal.classList.add("hidden");
+  clearToast();
 }
 
 function reservePremium() {
@@ -1599,7 +1696,7 @@ async function copyPremiumCode() {
 }
 
 function openPaymentProvider() {
-  showToast("微信开通提醒已记录，当前先为你锁定内测价。");
+  showToast("已记录提醒，开放微信通道时优先通知你。");
   sendEvent("payment_provider_click", { action: "wechat_reserved", score: state.result?.score });
 }
 
@@ -1627,14 +1724,14 @@ function buildShareLine(score, city, persona, tier, identity) {
   if (identity) {
     const variants = [
       `我是 ${identity.typeCode}：${identity.typeName}，${identity.shortLine}`,
-      `${city}${persona}今日人格：${identity.typeCode}。${base}`,
+      `${city}${persona}今日类型：${identity.typeCode}。${base}`,
       `刚测完《活着么》：${identity.typeCode} / ${score}分。${identity.shortLine}`,
     ];
     return variants[state.copySeed % variants.length];
   }
   const variants = [
-    `我今天精神存活指数 ${score}，${base}`,
-    `${city}${persona}今日样本：精神存活指数 ${score}。${base}`,
+    `我今天电量 ${score}，${base}`,
+    `${city}${persona}今日电量 ${score}。${base}`,
     `刚测完《活着么》：${score}/100。${base}`,
   ];
   return variants[state.copySeed % variants.length];
@@ -1659,23 +1756,49 @@ function buildDisplayLink() {
 }
 
 async function ensureShareQr() {
-  if (state.qrImage || !state.result) return;
+  if (!state.result) return;
+  const url = buildShareUrl("poster");
+  if (state.qrImage && state.qrUrl === url) return;
+
+  const cached = shareQrCache.get(url);
+  if (cached?.image) {
+    state.qrUrl = url;
+    state.qrDataUrl = cached.dataUrl;
+    state.qrImage = cached.image;
+    return;
+  }
+
+  if (cached?.promise) {
+    const loaded = await cached.promise;
+    state.qrUrl = url;
+    state.qrDataUrl = loaded.dataUrl;
+    state.qrImage = loaded.image;
+    return;
+  }
+
+  const promise = loadShareQr(url);
+  shareQrCache.set(url, { promise });
   try {
-    const controller = new AbortController();
-    const timer = window.setTimeout(() => controller.abort(), 1400);
-    const response = await fetch(`/api/qr?data=${encodeURIComponent(buildShareUrl("poster"))}`, {
-      signal: controller.signal,
-    });
-    window.clearTimeout(timer);
-    if (!response.ok) return;
-    const data = await response.json();
-    if (!data.dataUrl) return;
-    state.qrDataUrl = data.dataUrl;
-    state.qrImage = await loadImage(data.dataUrl);
+    const loaded = await promise;
+    shareQrCache.set(url, loaded);
+    state.qrUrl = url;
+    state.qrDataUrl = loaded.dataUrl;
+    state.qrImage = loaded.image;
   } catch {
+    shareQrCache.delete(url);
     state.qrDataUrl = "";
     state.qrImage = null;
+    state.qrUrl = "";
   }
+}
+
+async function loadShareQr(url) {
+  const response = await fetch(`/api/qr?data=${encodeURIComponent(url)}`);
+  if (!response.ok) throw new Error("qr_failed");
+  const data = await response.json();
+  if (!data.dataUrl) throw new Error("qr_empty");
+  const image = await loadImage(data.dataUrl);
+  return { dataUrl: data.dataUrl, image };
 }
 
 async function renderDesktopQr() {
@@ -2021,7 +2144,7 @@ function buildIdentityResult(profile, answers, score, tier, seed) {
   const typeCode = axes.map((axis) => axis.letter).join("");
   const coreCode = typeCode.slice(0, 4);
   const suffixCode = typeCode.slice(4);
-  const coreName = identityCoreNames[coreCode] || "精神低亮样本型";
+  const coreName = identityCoreNames[coreCode] || "低亮漂流型";
   const suffixName = identitySuffixNames[suffixCode] || "今日漂流观察人";
   const variant = pick(identityVariants[profile.themeId] || identityVariants.worker, seed + hash(typeCode));
   const rarity = (3 + (hash(`${dateKey}:${typeCode}:${profile.city}`) % 97) / 10).toFixed(1);
@@ -2100,7 +2223,7 @@ function flipTypeCode(typeCode, axisKeys) {
 }
 
 function buildIdentityNameFromCode(typeCode) {
-  return `${identityCoreNames[typeCode.slice(0, 4)] || "精神低亮样本型"}·${identitySuffixNames[typeCode.slice(4)] || "今日漂流观察人"}`;
+  return `${identityCoreNames[typeCode.slice(0, 4)] || "低亮漂流型"}·${identitySuffixNames[typeCode.slice(4)] || "今日漂流观察人"}`;
 }
 
 function renderIdentityCodeProgress(question) {
@@ -2142,6 +2265,29 @@ function buildHotTypeCode() {
   return pick(samples, hash(`${dateKey}:${state.stats.tests || 0}`));
 }
 
+function buildRailHotTypes(seed) {
+  const codes = ["LMISFNW", "HMIRPNA", "LDORFTW", "HDOSPTA", "LMORFNA", "LDIRPNW"];
+  return codes.slice(0, 4).map((code, index) => ({
+    code,
+    name: buildIdentityNameFromCode(code).split("·")[0],
+    count: 18 + ((seed + index * 17) % 86),
+  }));
+}
+
+function buildRailLiveLines(theme, city, seed) {
+  const minutes = [2, 5, 8, 12];
+  const lines = [
+    `${city}${theme.label}测出「低亮营业重启型」`,
+    `有人生成了状态海报，准备发给朋友`,
+    `${theme.label}今日最常见耗电点：${pick(theme.causes, seed + 3)}`,
+    `刚有人复制了好友匹配链接`,
+  ];
+  return lines.map((text, index) => ({
+    time: `${minutes[index]} 分钟前`,
+    text,
+  }));
+}
+
 function normalizeTypeCode(value) {
   const text = String(value || "").toUpperCase().replace(/[^A-Z]/g, "");
   if (text.length !== 7) return "";
@@ -2178,7 +2324,7 @@ function buildResultSlices(profile, score, tier, seed, answers, identity) {
 function buildShareReasons(profile, score, tier, seed, identity) {
   const content = themeBriefs[profile.themeId] || themeBriefs.worker;
   const reasonByTier = {
-    high: "你今天像同类样本里的反常清醒者，有一点欠发。",
+    high: "你今天少见地还挺在线，适合发出去刺激一下朋友。",
     mid: "分数不高不低，最像大家愿意接梗的真实状态。",
     low: "低电量结果最容易让朋友回一句：我也是。",
   };
@@ -2194,11 +2340,11 @@ function buildChallenge(profile, score, tier, seed, identity) {
   const endings = [
     "谁和你更同型，谁获得今天的免打扰名额。",
     "谁和你互补，谁负责把彼此从通知里捞出来。",
-    "谁代码更低亮，谁今天拥有提前下线资格。",
+    "谁今天更低亮，谁拥有提前下线资格。",
   ];
   return {
     title: `把 ${identity.typeCode} 发给朋友`,
-    copy: `${profile.city}${profile.persona}今日状态局已开。${pick(endings, seed + 17)}`,
+    copy: `${profile.city}${profile.persona}今天的状态出炉了。${pick(endings, seed + 17)}`,
   };
 }
 
@@ -2224,24 +2370,24 @@ function buildCombinationModifier(answers) {
 function buildPersonaTag(profile, tier, seed) {
   const map = {
     worker: {
-      high: ["准点下班幻想家", "会议免疫样本", "工位清醒派"],
+      high: ["准点下班幻想家", "会议免疫体", "工位清醒派"],
       mid: ["轻度冒烟打工人", "工位低亮度运行者", "消息夹缝生存者"],
-      low: ["通知过敏样本", "工位省电模式", "周报反噬幸存者"],
+      low: ["通知过敏人", "工位省电模式", "周报反噬幸存者"],
     },
     student: {
-      high: ["DDL 反杀样本", "早八清醒派", "食堂运气持有者"],
-      mid: ["课表夹缝生存者", "轻度拖延研究员", "宿舍低电量样本"],
-      low: ["DDL 堆叠样本", "早八省电模式", "小组作业承重墙"],
+      high: ["DDL 反杀选手", "早八清醒派", "食堂运气持有者"],
+      mid: ["课表夹缝生存者", "轻度拖延研究员", "宿舍低电量人"],
+      low: ["DDL 堆叠人", "早八省电模式", "小组作业承重墙"],
     },
     solo: {
-      high: ["房间秩序维护者", "热饭续命样本", "独居高亮度人类"],
+      high: ["房间秩序维护者", "热饭续命人", "独居高亮度人类"],
       mid: ["房间静音观察员", "外卖备注交流者", "生活低速运行者"],
-      low: ["深夜脑内会议主持", "房间省电模式", "开灯延迟样本"],
+      low: ["深夜脑内会议主持", "房间省电模式", "开灯延迟人"],
     },
     freelance: {
-      high: ["尾款已到账样本", "边界感持有者", "报价底气在线"],
+      high: ["尾款已到账人", "边界感持有者", "报价底气在线"],
       mid: ["客户消息缓冲区", "现金流观察员", "自由但轻度焦虑"],
-      low: ["改稿循环样本", "边界消失模式", "尾款召唤师"],
+      low: ["改稿循环人", "边界消失模式", "尾款召唤师"],
     },
   };
   return pick(map[profile.themeId]?.[tier] || map.worker.mid, seed);
@@ -2524,9 +2670,20 @@ function showToast(message) {
   toast.classList.add("show");
   window.clearTimeout(showToast.timer);
   showToast.timer = window.setTimeout(() => {
-    toast.classList.remove("show");
-    window.setTimeout(() => {
-      if (!toast.classList.contains("show")) toast.textContent = "";
-    }, 180);
+    hideToast();
   }, 2200);
+}
+
+function hideToast() {
+  window.clearTimeout(showToast.timer);
+  toast.classList.remove("show");
+  window.setTimeout(() => {
+    if (!toast.classList.contains("show")) toast.textContent = "";
+  }, 180);
+}
+
+function clearToast() {
+  window.clearTimeout(showToast.timer);
+  toast.classList.remove("show");
+  toast.textContent = "";
 }
