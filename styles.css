@@ -2923,8 +2923,7 @@ body {
 
 .identity-axis-row {
   display: grid;
-  grid-template-columns: 24px 1fr 24px;
-  gap: 8px;
+  grid-template-columns: 1fr;
   align-items: center;
   margin-top: 8px;
   color: var(--muted);
@@ -3375,5 +3374,9 @@ body {
   .result-page {
     grid-template-columns: minmax(0, 1fr) minmax(320px, 0.82fr);
     align-items: start;
+  }
+
+  .phone-stage .result-page {
+    grid-template-columns: 1fr;
   }
 }

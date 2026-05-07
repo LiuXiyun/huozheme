@@ -1,4 +1,14 @@
 const qs = (selector) => document.querySelector(selector);
+const productionOrigin = "http://47.110.49.198";
+const isFilePreview = window.location.protocol === "file:";
+
+function apiUrl(path) {
+  return isFilePreview ? `${productionOrigin}${path}` : path;
+}
+
+function getShareBaseUrl() {
+  return isFilePreview ? `${productionOrigin}/` : window.location.href;
+}
 
 const state = {
   profile: {},
@@ -1523,7 +1533,7 @@ function renderAtmosphere() {
 
 async function hydrateStats() {
   try {
-    const response = await fetch("/api/stats");
+    const response = await fetch(apiUrl("/api/stats"));
     if (!response.ok) return;
     const data = await response.json();
     state.stats = { ...state.stats, ...data };
@@ -1599,7 +1609,7 @@ function selectDailyQuestions(pool, count, seedText) {
 
 async function hydrateQuestionPool({ applyToCurrentQuiz = true } = {}) {
   try {
-    const response = await fetch(`/api/questions?theme=${encodeURIComponent(state.activeTheme)}&city=${encodeURIComponent(state.profile.city)}`);
+    const response = await fetch(apiUrl(`/api/questions?theme=${encodeURIComponent(state.activeTheme)}&city=${encodeURIComponent(state.profile.city)}`));
     if (!response.ok) {
       state.questionSource = "local";
       if (!quizView.classList.contains("hidden")) setTopbarStatus("5 题测试中");
@@ -1837,9 +1847,7 @@ function renderIdentityAxes(result) {
           <span>${axis.label}倾向</span>
           <strong>${axis.choice}</strong>
           <div class="identity-axis-row">
-            <b>${axis.letters[0]}</b>
             <div><i style="--axis: ${axis.percent}%"></i></div>
-            <b>${axis.letters[1]}</b>
           </div>
         </div>
       `,
@@ -2022,6 +2030,7 @@ async function saveShareImage() {
     button.disabled = true;
     button.textContent = "生成中...";
   }
+  showToast("正在生成状态卡...");
   try {
     await ensureShareQr();
     const canvas = drawShareCanvas(state.result, state.posterTemplate);
@@ -2123,7 +2132,7 @@ function buildShareLine(score, city, persona, tier, identity) {
 }
 
 function buildShareUrl(source = "poster") {
-  const url = new URL(location.href);
+  const url = new URL(getShareBaseUrl());
   url.hash = "";
   url.search = "";
   url.searchParams.set("s", state.shareId);
@@ -2178,7 +2187,7 @@ async function ensureShareQr() {
 }
 
 async function loadShareQr(url) {
-  const response = await fetch(`/api/qr?data=${encodeURIComponent(url)}`);
+  const response = await fetch(apiUrl(`/api/qr?data=${encodeURIComponent(url)}`));
   if (!response.ok) throw new Error("qr_failed");
   const data = await response.json();
   if (!data.dataUrl) throw new Error("qr_empty");
@@ -2190,7 +2199,7 @@ async function renderDesktopQr() {
   const root = qs("#desktopQr");
   renderMiniQr(root, state.shareId);
   try {
-    const response = await fetch(`/api/qr?data=${encodeURIComponent(buildShareUrl("desktop"))}`);
+    const response = await fetch(apiUrl(`/api/qr?data=${encodeURIComponent(buildShareUrl("desktop"))}`));
     if (!response.ok) return;
     const data = await response.json();
     if (!data.dataUrl) return;
@@ -2224,7 +2233,7 @@ async function hydrateAiResult() {
   if (!state.result || state.aiStatus === "loading") return;
   state.aiStatus = "loading";
   try {
-    const response = await fetch("/api/generate", {
+    const response = await fetch(apiUrl("/api/generate"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -2322,10 +2331,10 @@ function sendEvent(type, extra = {}) {
     const body = JSON.stringify(payload);
     if (navigator.sendBeacon) {
       const blob = new Blob([body], { type: "application/json" });
-      navigator.sendBeacon("/api/event", blob);
+      navigator.sendBeacon(apiUrl("/api/event"), blob);
       return;
     }
-    fetch("/api/event", {
+    fetch(apiUrl("/api/event"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body,

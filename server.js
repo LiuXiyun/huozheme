@@ -34,6 +34,10 @@ const server = http.createServer(async (req, res) => {
   try {
     const url = new URL(req.url, `http://${req.headers.host || "localhost"}`);
     if (apiRoutes[url.pathname]) {
+      if (req.method === "OPTIONS") {
+        sendCors(res, 204);
+        return;
+      }
       await handleApi(req, res, url, apiRoutes[url.pathname]);
       return;
     }
@@ -66,9 +70,23 @@ function createApiResponse(res) {
       res.writeHead(this.statusCode, {
         "Content-Type": "application/json; charset=utf-8",
         "X-Content-Type-Options": "nosniff",
+        ...corsHeaders(),
       });
       res.end(body);
     },
+  };
+}
+
+function sendCors(res, status) {
+  res.writeHead(status, corsHeaders());
+  res.end();
+}
+
+function corsHeaders() {
+  return {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type",
   };
 }
 
