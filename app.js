@@ -29,6 +29,80 @@ const state = {
 
 const shareQrCache = new Map();
 
+const cityGroups = [
+  {
+    label: "华北",
+    cities: ["北京", "天津", "石家庄", "唐山", "保定", "邯郸", "廊坊", "秦皇岛", "沧州", "邢台", "太原", "呼和浩特", "包头", "鄂尔多斯"],
+  },
+  {
+    label: "东北",
+    cities: ["沈阳", "大连", "长春", "哈尔滨", "鞍山", "吉林", "大庆"],
+  },
+  {
+    label: "华东",
+    cities: [
+      "上海",
+      "南京",
+      "苏州",
+      "杭州",
+      "宁波",
+      "无锡",
+      "常州",
+      "南通",
+      "徐州",
+      "扬州",
+      "镇江",
+      "泰州",
+      "盐城",
+      "连云港",
+      "宿迁",
+      "淮安",
+      "嘉兴",
+      "绍兴",
+      "温州",
+      "金华",
+      "台州",
+      "湖州",
+      "丽水",
+      "合肥",
+      "芜湖",
+      "马鞍山",
+      "滁州",
+      "安庆",
+      "福州",
+      "厦门",
+      "泉州",
+      "漳州",
+      "莆田",
+      "济南",
+      "青岛",
+      "烟台",
+      "潍坊",
+      "临沂",
+      "济宁",
+      "淄博",
+      "威海",
+      "泰安",
+    ],
+  },
+  {
+    label: "华中",
+    cities: ["武汉", "郑州", "长沙", "南昌", "洛阳", "新乡", "商丘", "许昌", "南阳", "襄阳", "宜昌", "荆州", "株洲", "岳阳", "衡阳", "常德", "九江", "赣州", "上饶", "宜春"],
+  },
+  {
+    label: "华南",
+    cities: ["广州", "深圳", "佛山", "东莞", "珠海", "中山", "惠州", "汕头", "江门", "湛江", "肇庆", "南宁", "桂林", "柳州", "海口", "三亚"],
+  },
+  {
+    label: "西南",
+    cities: ["重庆", "成都", "昆明", "贵阳", "绵阳", "南充", "宜宾", "遵义", "曲靖", "大理", "泸州", "德阳", "乐山"],
+  },
+  {
+    label: "西北",
+    cities: ["西安", "兰州", "银川", "西宁", "乌鲁木齐", "咸阳", "宝鸡", "榆林", "渭南", "天水"],
+  },
+];
+
 const posterTemplates = {
   classic: "报告卡",
   social: "状态墙",
@@ -849,6 +923,7 @@ init();
 
 function init() {
   document.documentElement.style.setProperty("--theme-color", themes[state.activeTheme].color);
+  renderCityOptions();
   renderThemeButtons();
   renderAtmosphere();
   hydrateStats();
@@ -954,6 +1029,23 @@ function init() {
       });
     }
   });
+}
+
+function renderCityOptions() {
+  const select = qs("#city");
+  if (!select) return;
+  const previous = select.value || "上海";
+  const options = new Set(cityGroups.flatMap((group) => group.cities));
+  select.innerHTML = cityGroups
+    .map(
+      (group) => `
+        <optgroup label="${group.label}">
+          ${group.cities.map((city) => `<option value="${city}">${city}</option>`).join("")}
+        </optgroup>
+      `,
+    )
+    .join("");
+  select.value = options.has(previous) ? previous : "上海";
 }
 
 function renderThemeButtons() {
