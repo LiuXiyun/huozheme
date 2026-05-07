@@ -926,6 +926,7 @@ init();
 
 function init() {
   updateViewportHeight();
+  mountGlobalOverlays();
   document.documentElement.style.setProperty("--theme-color", themes[state.activeTheme].color);
   renderCityOptions();
   bindCityPickerEvents();
@@ -1034,6 +1035,15 @@ function init() {
   window.visualViewport?.addEventListener("scroll", updateViewportHeight);
 }
 
+function mountGlobalOverlays() {
+  ["#cityPicker", "#premiumModal"].forEach((selector) => {
+    const node = qs(selector);
+    if (node && node.parentElement !== document.body) {
+      document.body.appendChild(node);
+    }
+  });
+}
+
 function renderCityOptions() {
   const input = qs("#city");
   if (!input) return;
@@ -1058,7 +1068,7 @@ function bindCityPickerEvents() {
     renderCityResults(event.target.value);
   });
   qs("#citySearch")?.addEventListener("focus", () => {
-    setCityKeyboardState(true);
+    setCityKeyboardState(shouldUseCityKeyboardLayout());
     updateViewportHeight();
     keepCitySearchVisible();
   });
@@ -1086,6 +1096,15 @@ function openCityPicker() {
   if (search) {
     search.value = "";
     renderCityResults("");
+    if (isDesktopCityPicker()) {
+      window.setTimeout(() => {
+        try {
+          search.focus({ preventScroll: true });
+        } catch {
+          search.focus();
+        }
+      }, 80);
+    }
   }
   sendEvent("open_city_picker", { city: getCityValue() });
 }
@@ -1189,7 +1208,7 @@ function updateViewportHeight() {
   root.style.setProperty("--keyboard-inset", `${keyboardInset}px`);
 
   if (!qs("#cityPicker")?.classList.contains("hidden") && document.activeElement === qs("#citySearch")) {
-    setCityKeyboardState(true);
+    setCityKeyboardState(shouldUseCityKeyboardLayout());
     keepCitySearchVisible();
   }
 }
@@ -1223,7 +1242,7 @@ function setCityKeyboardState(isOpen) {
 
 function keepCitySearchVisible() {
   const search = qs("#citySearch");
-  if (!search || qs("#cityPicker")?.classList.contains("hidden")) return;
+  if (!search || qs("#cityPicker")?.classList.contains("hidden") || !shouldUseCityKeyboardLayout()) return;
   window.requestAnimationFrame(() => {
     try {
       search.scrollIntoView({ block: "nearest", inline: "nearest" });
@@ -1231,6 +1250,16 @@ function keepCitySearchVisible() {
       search.scrollIntoView(false);
     }
   });
+}
+
+function isDesktopCityPicker() {
+  return window.matchMedia?.("(min-width: 901px)").matches;
+}
+
+function shouldUseCityKeyboardLayout() {
+  const viewport = window.visualViewport;
+  const viewportShrink = viewport ? window.innerHeight - viewport.height - viewport.offsetTop : 0;
+  return !isDesktopCityPicker() || viewportShrink > 90;
 }
 
 function renderThemeButtons() {

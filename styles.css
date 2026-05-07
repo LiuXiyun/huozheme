@@ -1182,6 +1182,39 @@ body.city-picker-open {
   min-height: 96px;
 }
 
+@media (min-width: 901px) {
+  .city-picker-layer {
+    inset: 0;
+    height: 100vh;
+    place-items: center;
+    align-items: center;
+    padding: 32px;
+  }
+
+  .city-picker-panel {
+    width: min(640px, calc(100vw - 64px));
+    max-height: min(720px, calc(100vh - 64px));
+    grid-template-rows: auto auto auto auto minmax(220px, 1fr);
+    border-radius: 18px;
+    padding: 22px;
+    box-shadow: 0 28px 110px rgba(0, 0, 0, 0.58);
+  }
+
+  .city-picker-head h2 {
+    font-size: 24px;
+  }
+
+  #cityQuickList {
+    flex-wrap: wrap;
+    overflow-x: visible;
+  }
+
+  .city-result-list {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    min-height: 240px;
+  }
+}
+
 .modal-card {
   position: relative;
   width: min(100%, 480px);
