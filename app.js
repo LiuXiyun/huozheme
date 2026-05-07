@@ -1004,7 +1004,7 @@ function renderDailySignals() {
   const sample = Number(state.stats.tests || 0);
   const signals = [
     { label: "今日热词", value: pick(content.signals, seed) },
-    { label: "同城人数", value: `${city} ${sample || "--"} 人测过` },
+    { label: "今日热度", value: `${city} ${sample || "--"}` },
     { label: "适合查看", value: pick(["下班前", "午休后", "安静几分钟", "睡前别太晚"], seed + 7) },
   ];
   root.innerHTML = signals
@@ -1040,8 +1040,8 @@ function renderRailContent() {
     const types = buildRailHotTypes(seed);
     typeRoot.innerHTML = `
       <div class="rail-section-head">
-        <span>今日热门类型</span>
-        <strong>${city}${theme.label}正在出现这些状态</strong>
+        <span>今日类型观察</span>
+        <strong>${city}${theme.label}更容易出现这些状态</strong>
       </div>
       <div class="rail-type-list">
         ${types
@@ -1050,7 +1050,7 @@ function renderRailContent() {
               <div>
                 <b>${item.code}</b>
                 <span>${item.name}</span>
-                <i>${item.count} 人</i>
+                <i>热度 ${item.count}</i>
               </div>
             `,
           )
@@ -1062,8 +1062,8 @@ function renderRailContent() {
     const lines = buildRailLiveLines(theme, city, seed);
     liveRoot.innerHTML = `
       <div class="rail-section-head">
-        <span>最新匿名报告</span>
-        <strong>刚刚有人测出了这些结果</strong>
+        <span>今日状态观察</span>
+        <strong>这些结果正在变常见</strong>
       </div>
       ${lines
         .map(
@@ -1175,7 +1175,7 @@ function updateSampleTheme() {
   qs("#sampleTitle").textContent = pick(sampleTitles, seed);
   qs("#sampleText").textContent = pick(sampleTexts, seed + 3);
   qs("#samplePersona").textContent = `${city}${theme.label}`;
-  qs("#sampleBeat").textContent = `高于同城 ${sampleBeat}% 用户`;
+  qs("#sampleBeat").textContent = `同城观察值 ${sampleBeat}%`;
 }
 
 function renderStats() {
@@ -1188,7 +1188,7 @@ function renderStats() {
   setText("#railHotType", buildHotTypeCode());
   setText("#railReservations", state.stats.reservations);
   qs("#sampleNote").textContent =
-    state.stats.source === "redis" ? "今日热度会随完成人数增加" : "今日热度使用冷启动基数";
+    state.stats.source === "redis" ? "今日热度会随完成次数变化" : "今日热度每日刷新";
   updateSampleTheme();
   renderDailySignals();
   renderRailContent();
@@ -1413,7 +1413,7 @@ function renderResult(result) {
   qs("#identityName").textContent = result.identity.typeName;
   qs("#identityCopy").textContent = result.identity.explanation;
   qs("#identityRarity").textContent = `${result.identity.rarity}%`;
-  qs("#identityTwins").textContent = `${result.identity.sameTypeCount}人`;
+  qs("#identityTwins").textContent = result.identity.sameTypeCount;
   qs("#scoreValue").textContent = result.score;
   qs("#scoreRing").style.setProperty("--score-deg", `${result.score * 3.6}deg`);
   qs("#riskStamp").textContent = result.riskStamp;
@@ -1421,10 +1421,10 @@ function renderResult(result) {
   qs("#personaTag").textContent = result.personaTag;
   qs("#reportRoast").textContent = result.roast;
   qs("#cityRank").textContent = `${result.cityBeat}%`;
-  qs("#cityRankLabel").textContent = `高于${result.city}今日用户`;
+  qs("#cityRankLabel").textContent = `${result.city}状态位置`;
   qs("#personaRank").textContent = `${result.personaBeat}%`;
-  qs("#personaRankLabel").textContent = `高于${result.persona}用户`;
-  qs("#rankFootnote").textContent = `今日参与 ${result.rankSample || state.stats.tests || "--"} 人，仅供娱乐参考`;
+  qs("#personaRankLabel").textContent = `${result.persona}状态位置`;
+  qs("#rankFootnote").textContent = `今日热度 ${result.rankSample || state.stats.tests || "--"}，位置为娱乐化估算`;
   qs("#causeText").textContent = result.cause;
   qs("#reviveText").textContent = result.revive;
   qs("#adviceText").textContent = result.advice;
@@ -1996,14 +1996,14 @@ function drawShareCanvas(result, template = "classic") {
   drawPill(ctx, 76, 448, result.identity.suffixName, result.theme.color);
 
   drawScore(ctx, result.score, 540, 600, 126, result.theme.color);
-  drawStamp(ctx, `${result.identity.rarity}%稀有`, 710, 466);
+  drawStamp(ctx, `观察值${result.identity.rarity}%`, 710, 466);
 
   ctx.fillStyle = "#ddd7c7";
   ctx.font = "500 40px system-ui, sans-serif";
   wrapText(ctx, result.identity.explanation, 110, 820, w - 220, 58, 3);
 
-  drawMetric(ctx, 92, 985, 420, 170, `${result.identity.sameTypeCount}`, `${result.city}同城同型人数`, result.theme.color);
-  drawMetric(ctx, 568, 985, 420, 170, `${result.identity.rarity}%`, `${result.persona}同型率`, result.theme.color);
+  drawMetric(ctx, 92, 985, 420, 170, `${result.identity.sameTypeCount}`, `${result.city}同型热度`, result.theme.color);
+  drawMetric(ctx, 568, 985, 420, 170, `${result.identity.rarity}%`, `${result.persona}观察率`, result.theme.color);
 
   drawInfoBox(ctx, 92, 1170, 420, 118, "今天最耗你", result.cause);
   drawInfoBox(ctx, 568, 1170, 420, 118, "先做这件事", result.revive);
@@ -2277,10 +2277,10 @@ function buildRailHotTypes(seed) {
 function buildRailLiveLines(theme, city, seed) {
   const minutes = [2, 5, 8, 12];
   const lines = [
-    `${city}${theme.label}测出「低亮营业重启型」`,
-    `有人生成了今日状态卡`,
+    `${city}${theme.label}常见状态：「低亮营业重启型」`,
+    `今日状态卡更偏低电量风格`,
     `${theme.label}今日最常见耗电点：${pick(theme.causes, seed + 3)}`,
-    `刚有人查看了同频匹配入口`,
+    `同频匹配里互补型更容易回血`,
   ];
   return lines.map((text, index) => ({
     time: `${minutes[index]} 分钟前`,
