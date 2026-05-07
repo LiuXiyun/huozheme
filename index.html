@@ -44,20 +44,8 @@
 
             <label class="field">
               <span>城市</span>
-              <select id="city" required>
-                <option value="上海">上海</option>
-                <option value="北京">北京</option>
-                <option value="深圳">深圳</option>
-                <option value="广州">广州</option>
-                <option value="杭州">杭州</option>
-                <option value="成都">成都</option>
-                <option value="武汉">武汉</option>
-                <option value="南京">南京</option>
-                <option value="长沙">长沙</option>
-                <option value="重庆">重庆</option>
-                <option value="西安">西安</option>
-                <option value="苏州">苏州</option>
-              </select>
+              <input id="city" name="city" list="cityList" value="上海" maxlength="12" autocomplete="off" placeholder="输入城市，如上海、成都、乌鲁木齐" required />
+              <datalist id="cityList"></datalist>
             </label>
 
             <label class="field">

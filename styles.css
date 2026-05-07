@@ -37,7 +37,8 @@ body {
 }
 
 button,
-select {
+select,
+input {
   font: inherit;
 }
 
@@ -237,7 +238,8 @@ h1 {
   gap: 8px;
 }
 
-.field select {
+.field select,
+.field input {
   width: 100%;
   min-height: 54px;
   border: 1px solid var(--line);
@@ -248,7 +250,8 @@ h1 {
   outline: none;
 }
 
-.field select:focus {
+.field select:focus,
+.field input:focus {
   border-color: rgba(199, 255, 79, 0.72);
 }
 
@@ -1131,6 +1134,7 @@ h1 {
 
 .theme-button,
 .field select,
+.field input,
 .primary-action,
 .ghost-action,
 .premium-card button,
@@ -1154,7 +1158,8 @@ h1 {
   min-height: 76px;
 }
 
-.field select {
+.field select,
+.field input {
   min-height: 70px;
   font-weight: 900;
 }
@@ -2777,7 +2782,8 @@ body {
   gap: 6px;
 }
 
-.phone-stage .field select {
+.phone-stage .field select,
+.phone-stage .field input {
   min-height: 56px;
   padding: 0 12px;
 }

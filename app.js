@@ -956,7 +956,7 @@ function init() {
     }
     const theme = themes[state.activeTheme];
     state.profile = {
-      city: qs("#city").value,
+      city: getCityValue(),
       mood: qs("#mood").value,
       themeId: state.activeTheme,
       persona: theme.label,
@@ -977,10 +977,15 @@ function init() {
     hydrateQuestionPool({ applyToCurrentQuiz: false });
   });
 
+  qs("#city").addEventListener("input", () => {
+    updateThemeBrief();
+    updateSampleTheme();
+  });
+
   qs("#city").addEventListener("change", () => {
     updateThemeBrief();
     updateSampleTheme();
-    sendEvent("select_city", { city: qs("#city").value });
+    sendEvent("select_city", { city: getCityValue() });
   });
 
   qs("#mood").addEventListener("change", () => {
@@ -1032,20 +1037,17 @@ function init() {
 }
 
 function renderCityOptions() {
-  const select = qs("#city");
-  if (!select) return;
-  const previous = select.value || "上海";
-  const options = new Set(cityGroups.flatMap((group) => group.cities));
-  select.innerHTML = cityGroups
-    .map(
-      (group) => `
-        <optgroup label="${group.label}">
-          ${group.cities.map((city) => `<option value="${city}">${city}</option>`).join("")}
-        </optgroup>
-      `,
-    )
-    .join("");
-  select.value = options.has(previous) ? previous : "上海";
+  const input = qs("#city");
+  const list = qs("#cityList");
+  if (!input || !list) return;
+  const previous = getCityValue();
+  const cities = [...new Set(cityGroups.flatMap((group) => group.cities))];
+  list.innerHTML = cities.map((city) => `<option value="${city}"></option>`).join("");
+  input.value = previous || "上海";
+}
+
+function getCityValue() {
+  return (qs("#city")?.value || "").trim() || "上海";
 }
 
 function renderThemeButtons() {
@@ -1074,7 +1076,7 @@ function renderThemeButtons() {
 function updateThemeBrief() {
   const theme = themes[state.activeTheme];
   const content = themeBriefs[state.activeTheme] || themeBriefs.worker;
-  const city = qs("#city")?.value || theme.hotLine;
+  const city = getCityValue() || theme.hotLine;
   const mood = qs("#mood")?.value || "低电量运行，还在硬撑";
   setText("#briefTitle", `${city}${theme.label}版`);
   setText("#briefCopy", `${content.copy} 你现在是“${mood}”，测完会生成一张今日状态卡。`);
@@ -1091,7 +1093,7 @@ function renderDailySignals() {
   if (!root) return;
   const theme = themes[state.activeTheme];
   const content = themeBriefs[state.activeTheme] || themeBriefs.worker;
-  const city = qs("#city")?.value || theme.hotLine;
+  const city = getCityValue() || theme.hotLine;
   const seed = hash(`${dateKey}:${state.activeTheme}:${city}:signals`);
   const sample = Number(state.stats.tests || 0);
   const signals = [
@@ -1120,7 +1122,7 @@ function renderRailContent() {
   if (!nowRoot || !feedRoot) return;
   const theme = themes[state.activeTheme];
   const content = themeBriefs[state.activeTheme] || themeBriefs.worker;
-  const city = qs("#city")?.value || theme.hotLine;
+  const city = getCityValue() || theme.hotLine;
   const average = clamp(Number(state.stats.average || 42), 17, 98);
   const seed = hash(`${dateKey}:${state.activeTheme}:${city}:rail`);
   nowRoot.innerHTML = `
@@ -1252,7 +1254,7 @@ async function hydrateStats() {
 
 function updateSampleTheme() {
   const theme = themes[state.activeTheme];
-  const city = qs("#city")?.value || state.stats.activeCity || theme.hotLine;
+  const city = getCityValue() || state.stats.activeCity || theme.hotLine;
   const seed = hash(`${dateKey}:${state.activeTheme}:${city}`);
   const sampleScore = clamp(29 + (seed % 43), 17, 88);
   const sampleBeat = clamp(Math.round(sampleScore * 0.72 + (seed % 18)), 8, 96);
@@ -2007,7 +2009,7 @@ function sendEvent(type, extra = {}) {
     shareId: state.shareId,
     entryShareId: state.entryShareId,
     theme: extra.theme || state.profile?.themeId || state.activeTheme,
-    city: extra.city || state.profile?.city || qs("#city")?.value,
+    city: extra.city || state.profile?.city || getCityValue(),
     score: extra.score ?? state.result?.score,
     scoreBucket: extra.scoreBucket ?? state.result?.scoreBucket,
     typeCode: extra.typeCode || state.result?.identity?.typeCode,
