@@ -178,36 +178,6 @@ const identityAxes = [
   { key: "coping", letters: ["A", "W"], label: "应对", left: "自救行动", right: "等待奇迹" },
 ];
 
-const identityCoreNames = {
-  HMOS: "高亮接梗回血型",
-  HMOR: "高亮场控重启型",
-  HMIS: "高亮静音观察型",
-  HMIR: "高亮边界维护型",
-  HDOS: "任务反杀外放型",
-  HDOR: "任务冲刺重启型",
-  HDIS: "计划低噪幸存型",
-  HDIR: "独行赶工重启型",
-  LMOS: "低电量接梗型",
-  LMOR: "低亮营业重启型",
-  LMIS: "通知过敏省电型",
-  LMIR: "深夜静音逃生型",
-  LDOS: "拖延自嘲回血型",
-  LDOR: "截止线边缘型",
-  LDIS: "被窝防御型",
-  LDIR: "人生后台重启型",
-};
-
-const identitySuffixNames = {
-  PTA: "控场吐槽自救人",
-  PTW: "控场吐槽许愿人",
-  PNA: "计划静音自救人",
-  PNW: "计划静音许愿人",
-  FTA: "随缘吐槽自救人",
-  FTW: "随缘吐槽许愿人",
-  FNA: "随缘静音自救人",
-  FNW: "随缘静音许愿人",
-};
-
 const identityVariants = {
   worker: ["工位低亮版", "会议后遗症版", "周报反噬版", "下班幻想版"],
   student: ["DDL 呼吸版", "早八残影版", "宿舍低电量版", "小组作业承重版"],
@@ -2630,21 +2600,6 @@ function buildSimpleStatusType(profile, score, tier, seed, axes) {
     ...selected,
     line: selected.line || themeLine[profile.themeId] || "今天先轻一点。",
   };
-}
-
-function buildIdentityShortLine(typeCode, coreName, suffixName, profile) {
-  const lines = {
-    L: "今天正在以最低亮度保护自己。",
-    H: "今天看起来像少数仍然在线的人类。",
-    M: "不是不想回复，只是通知已经开始冒烟。",
-    D: "不是拖延，是截止线在旁边开会。",
-    I: "适合隐身保命，不适合被突然点名。",
-    O: "适合接梗续命，但别把电量花完。",
-    W: "正在等待世界自己变好一点。",
-    A: "还能自救，甚至能顺手救一下别人。",
-  };
-  const selected = [...typeCode].map((letter) => lines[letter]).filter(Boolean);
-  return pick(selected, hash(`${typeCode}:${profile.city}:${profile.themeId}`)) || `${coreName}，${suffixName}`;
 }
 
 function buildIdentityRelations(identity, entryTypeCode, seed) {
