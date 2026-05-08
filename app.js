@@ -158,8 +158,8 @@ const cityPriority = [
 
 const posterTemplates = {
   classic: "简洁白卡",
-  social: "黑色幽默",
-  xhs: "低电量卡",
+  social: "彩虹屁卡",
+  xhs: "红色低电卡",
 };
 
 const toneOptions = {
@@ -217,22 +217,22 @@ const identityVariants = {
 
 const simpleStatusTypes = {
   high: [
-    { code: "A1", name: "在线人", line: "今天状态在线，可以顺手处理一件小事。" },
-    { code: "A2", name: "能量人", line: "今天不算费劲，别把好状态一次用完。" },
-    { code: "A3", name: "顺手人", line: "今天做事还算顺，适合轻轻推进一点。" },
-    { code: "A4", name: "稳住人", line: "今天心态比较稳，可以正常营业。" },
+    { code: "A1", name: "发电机", line: "今天不但能转，还能带动一小片现场。" },
+    { code: "A2", name: "小太阳", line: "今天亮得刚好，但别把自己晒干。" },
+    { code: "A3", name: "稳压器", line: "事情有波动，你还能把自己稳住。" },
+    { code: "A4", name: "热水壶", line: "慢慢升温，今天适合把一件事烧开。" },
   ],
   mid: [
-    { code: "C1", name: "硬撑人", line: "你不是不行，是今天需要省着点用。" },
-    { code: "C2", name: "凑合人", line: "今天能过就行，不必把自己调成满格。" },
-    { code: "R1", name: "想跑人", line: "人还在现场，心已经在找出口。" },
-    { code: "Y1", name: "已读人", line: "看见了，但不一定有力气马上回应。" },
+    { code: "C1", name: "充电宝", line: "自己电量不多，还在给别人供电。" },
+    { code: "C2", name: "小风扇", line: "一直在转，但风力已经调低。" },
+    { code: "C3", name: "插线板", line: "一堆事都插在你身上，先拔掉一个。" },
+    { code: "C4", name: "保温杯", line: "外面看着稳，里面还留着一点热气。" },
   ],
   low: [
-    { code: "D1", name: "低电人", line: "今天适合低亮度营业。" },
-    { code: "D2", name: "勿扰人", line: "今天先把通知关十分钟，世界不会塌。" },
-    { code: "B1", name: "安静崩", line: "表面很安静，里面已经开了很多窗口。" },
-    { code: "T1", name: "想躺人", line: "今天不是废，是确实有点费。" },
+    { code: "D1", name: "红电池", line: "电量已经见红，今天先别硬撑。" },
+    { code: "D2", name: "省电灯", line: "还亮着，但已经自动进入省电模式。" },
+    { code: "D3", name: "路由器", line: "大家都连着你，你自己的信号很差。" },
+    { code: "D4", name: "暖宝宝", line: "还想让别人暖一点，自己快凉了。" },
   ],
 };
 
@@ -894,7 +894,7 @@ const roasts = {
 
 const shareLines = {
   soft: {
-    high: "今天状态居然还不错，值得截图纪念一下。",
+    high: "今天状态居然还不错，值得留一张。",
     mid: "今天也算撑住了，允许自己慢慢恢复。",
     low: "今天电量偏低，先别和世界硬碰硬。",
   },
@@ -1066,6 +1066,7 @@ function init() {
     clearToast();
     state.answers = [];
     state.index = 0;
+    resetPosterOutput();
     resultView.classList.add("hidden");
     startView.classList.remove("hidden");
     setTopbarStatus("今日可测");
@@ -1468,7 +1469,7 @@ function renderRailContent() {
       <div>
         <strong>今日类型</strong>
         <strong>状态卡片</strong>
-        <strong>朋友对一下</strong>
+        <strong>编号对照</strong>
         <strong>隐藏内容</strong>
       </div>
     `;
@@ -1488,17 +1489,22 @@ function renderRailContent() {
 function renderPosterControls() {
   renderSwitch("#templateSwitch", posterTemplates, state.posterTemplate, (id) => {
     state.posterTemplate = id;
-    qs("#posterOutput").classList.add("hidden");
+    resetPosterOutput();
     updatePosterPreview();
     sendEvent("poster_template_change", { template: id });
   });
   renderSwitch("#toneSwitch", toneOptions, state.tone, (id) => {
     state.tone = id;
-    qs("#posterOutput").classList.add("hidden");
+    resetPosterOutput();
     updateShareCopy();
     updatePosterPreview();
     sendEvent("tone_change", { tone: id });
   });
+}
+
+function resetPosterOutput() {
+  qs("#posterOutput")?.classList.add("hidden");
+  qs("#posterStudio")?.classList.remove("generated");
 }
 
 function renderSwitch(selector, options, activeValue, onSelect) {
@@ -1508,6 +1514,7 @@ function renderSwitch(selector, options, activeValue, onSelect) {
     const button = document.createElement("button");
     button.type = "button";
     button.className = `chip-button${id === activeValue ? " active" : ""}`;
+    button.dataset.option = id;
     button.setAttribute("aria-pressed", id === activeValue ? "true" : "false");
     button.textContent = label;
     button.addEventListener("click", () => {
@@ -1565,10 +1572,11 @@ function updateSampleTheme() {
 
 function renderStats() {
   const displayAverage = clamp(Number(state.stats.average || 42), 17, 98);
+  const reservations = Number(state.stats.reservations || 128 + (hash(dateKey) % 260));
   setText("#todayTests", state.stats.tests);
   setText("#todayAverage", displayAverage);
   setText("#hotCity", state.stats.activeCity || themes[state.activeTheme].hotLine);
-  setText("#premiumCount", state.stats.reservations || 128 + (hash(dateKey) % 260));
+  setText("#premiumCount", `${reservations}人`);
   setText("#railTests", state.stats.tests);
   setText("#railHotType", buildHotTypeCode());
   setText("#railReservations", state.stats.reservations);
@@ -1583,7 +1591,7 @@ function showQuiz() {
   startView.classList.add("hidden");
   resultView.classList.add("hidden");
   quizView.classList.remove("hidden");
-  qs("#posterOutput").classList.add("hidden");
+  resetPosterOutput();
   qs("#quizMeta").textContent = `${state.profile.city} ${state.profile.persona}版`;
   setTopbarStatus("5 题测试中");
   document.documentElement.style.setProperty("--theme-color", state.profile.theme.color);
@@ -1727,6 +1735,7 @@ function showResult() {
   resultView.classList.remove("hidden");
   state.result = calculateResult();
   setTopbarStatus("报告完成");
+  resetPosterOutput();
   renderResult(state.result);
   renderPosterControls();
   updatePosterPreview();
@@ -1775,7 +1784,7 @@ function calculateResult() {
     identity,
     match,
     personaTag: buildPersonaTag(profile, tier, seed),
-    riskStamp: score >= 68 ? "状态在线" : score >= 36 ? "轻度冒烟" : profile.theme.risk,
+    riskStamp: score >= 68 ? "状态在线" : score >= 36 ? "轻度耗电" : "电量见红",
     roast: pick(roasts[tier], seed + 3),
     advice: pick(advice[tier], seed + 9),
     cause: pick(profile.theme.causes, seed + 14),
@@ -1790,8 +1799,21 @@ function calculateResult() {
   };
 }
 
+function getScoreColor(score) {
+  if (score < 36) return "#ff5b4f";
+  if (score < 68) return "#ffd166";
+  return "#c7ff4f";
+}
+
 function renderResult(result) {
   document.documentElement.style.setProperty("--theme-color", result.theme.color);
+  const reportCard = qs("#reportCard");
+  const scoreColor = getScoreColor(result.score);
+  if (reportCard) {
+    reportCard.dataset.scoreTier = result.tier;
+    reportCard.style.setProperty("--score-color", scoreColor);
+    reportCard.style.setProperty("--battery-fill", `${result.score}%`);
+  }
   qs("#reportTheme").textContent = `${result.persona}今日状态小卡`;
   qs("#reportDate").textContent = formatDate(new Date());
   qs("#identityCode").textContent = result.identity.typeCode;
@@ -1799,8 +1821,10 @@ function renderResult(result) {
   qs("#identityCopy").textContent = result.identity.explanation;
   qs("#identityRarity").textContent = `${result.identity.rarity}%`;
   qs("#identityTwins").textContent = result.identity.sameTypeCount;
-  qs("#scoreValue").textContent = result.score;
+  qs("#scoreValue").textContent = `${result.score}%`;
   qs("#scoreRing").style.setProperty("--score-deg", `${result.score * 3.6}deg`);
+  qs("#scoreRing").style.setProperty("--score-color", scoreColor);
+  qs("#batteryFill")?.style.setProperty("--battery-fill", `${result.score}%`);
   qs("#riskStamp").textContent = result.riskStamp;
   qs("#reportStatus").textContent = result.title;
   qs("#personaTag").textContent = result.personaTag;
@@ -1860,7 +1884,7 @@ function renderRelations(result) {
   if (!root) return;
   root.innerHTML = `
     <div class="relation-head">
-      <span>免费预览</span>
+      <span>先看一眼</span>
       <strong>${result.relations.free.title}</strong>
       <p>${result.relations.free.copy}</p>
     </div>
@@ -1985,7 +2009,7 @@ async function copyShareText() {
 
 async function copyStatusCode() {
   if (!state.result?.identity) return;
-  const text = `${state.result.identity.typeName} ${state.result.identity.typeCode}`;
+  const text = `${state.result.identity.typeName} ${state.result.identity.typeCode}：${state.result.identity.shortLine}`;
   const copied = await writeClipboard(text);
   showToast(copied ? `已复制：${text}` : text);
   sendEvent(copied ? "copy_status_code_success" : "copy_status_code_fail", {
@@ -2037,11 +2061,12 @@ async function saveShareImage() {
     const url = canvas.toDataURL("image/png");
     qs("#posterImage").src = url;
     qs("#posterOutput").classList.remove("hidden");
+    qs("#posterStudio")?.classList.add("generated");
     const link = document.createElement("a");
     link.download = `活着么-${dateKey}-${state.shareId}.png`;
     link.href = url;
     link.click();
-    showToast("报告图已生成，已打开长按保存图");
+    showToast("状态卡已生成");
     sendEvent("save_poster_success", { template: state.posterTemplate, tone: state.tone });
     sendEvent("save_poster", { template: state.posterTemplate, tone: state.tone });
     sendEvent("result_share_intent", { action: "save_poster" });
@@ -2077,13 +2102,13 @@ function reservePremium() {
   renderStats();
   updatePremiumState();
   closePremiumModal();
-  showToast("已锁定 9.9 内测价，之后可优先开通完整版。");
+  showToast("已锁定 9.9 内测价，隐藏内容开放时优先提醒。");
   sendEvent("lock_price_click", { score: state.result?.score, scoreBucket: state.result?.scoreBucket });
   sendEvent("reserve_premium", { score: state.result?.score, scoreBucket: state.result?.scoreBucket });
 }
 
 async function copyPremiumCode() {
-  const code = `活着么内测口令：${state.shareId.toUpperCase()}，我想看完整关系图`;
+  const code = `活着么内测口令：${state.shareId.toUpperCase()}，我想看隐藏内容`;
   const copied = await writeClipboard(code);
   showToast(copied ? "内测口令已复制" : code);
   sendEvent("payment_provider_click", { action: "copy_premium_code" });
@@ -2098,7 +2123,7 @@ function updatePremiumState() {
   state.reservedPremium = Boolean(localStorage.getItem("huozheme:premium-interest"));
   const premiumBtn = qs("#premiumBtn");
   const reserveBtn = qs("#reservePremiumBtn");
-  if (premiumBtn) premiumBtn.textContent = state.reservedPremium ? "已锁定 9.9 内测价" : "9.9 看完整关系";
+  if (premiumBtn) premiumBtn.textContent = state.reservedPremium ? "已锁定 9.9 内测价" : "9.9 看隐藏内容";
   if (reserveBtn) {
     reserveBtn.textContent = state.reservedPremium ? "已锁定今日内测价" : "锁定 9.9 内测价";
     reserveBtn.disabled = state.reservedPremium;
@@ -2118,15 +2143,15 @@ function buildShareLine(score, city, persona, tier, identity) {
   if (identity) {
     const variants = [
       `我是${identity.typeName} ${identity.typeCode}，${identity.shortLine}`,
-      `${city}${persona}今天是${identity.typeName}，电量 ${score}。${base}`,
-      `刚测完《活着么》：${identity.typeName} ${identity.typeCode}，${identity.shortLine}`,
+      `${city}${persona}今日电量 ${score}%，像一个${identity.typeName}。${base}`,
+      `今天像${identity.typeName}：${identity.shortLine}`,
     ];
     return variants[state.copySeed % variants.length];
   }
   const variants = [
-    `我今天电量 ${score}，${base}`,
-    `${city}${persona}今日电量 ${score}。${base}`,
-    `刚测完《活着么》：${score}/100。${base}`,
+    `我今天电量 ${score}%，${base}`,
+    `${city}${persona}今日电量 ${score}%。${base}`,
+    `今日电量 ${score}%，先轻一点。`,
   ];
   return variants[state.copySeed % variants.length];
 }
@@ -2347,7 +2372,7 @@ function sendEvent(type, extra = {}) {
 
 function buildShareText(result) {
   const shareUrl = buildShareUrl();
-  return `《活着么》今日状态小卡\n我的状态：${result.identity.typeName} ${result.identity.typeCode}\n今日电量：${result.score}/100\n最耗我的事：${result.cause}\n${result.shareLine}\n${shareUrl}`;
+  return `《活着么》今日状态小卡\n我的状态：${result.identity.typeName} ${result.identity.typeCode}\n今日电量：${result.score}%\n最耗我的事：${result.cause}\n${result.shareLine}\n${shareUrl}`;
 }
 
 function drawShareCanvas(result, template = "classic") {
@@ -2360,15 +2385,24 @@ function drawShareCanvas(result, template = "classic") {
     template === "classic"
       ? { bg: "#f7f5ee", fg: "#111317", muted: "#6f706c", card: "#ffffff", accent: "#111317" }
       : template === "xhs"
-        ? { bg: "#c7ff4f", fg: "#101114", muted: "#344019", card: "#f5ffd9", accent: "#101114" }
-        : { bg: "#101114", fg: "#f5f2e8", muted: "#a7a8aa", card: "#181a20", accent: result.theme.color };
+        ? { bg: "#ff5b4f", fg: "#1b1010", muted: "#5b1f1a", card: "#fff2eb", accent: "#1b1010" }
+        : { bg: "#78c8ff", fg: "#17130f", muted: "#614a32", card: "#fff5d7", accent: "#ff5b4f" };
+  const scoreColor = getScoreColor(result.score);
 
-  ctx.fillStyle = palette.bg;
+  if (template === "social") {
+    const gradient = ctx.createLinearGradient(0, 0, w, h);
+    gradient.addColorStop(0, "#78c8ff");
+    gradient.addColorStop(0.55, "#ffd99b");
+    gradient.addColorStop(1, "#ff8a72");
+    ctx.fillStyle = gradient;
+  } else {
+    ctx.fillStyle = palette.bg;
+  }
   ctx.fillRect(0, 0, w, h);
 
   if (template === "social") {
     drawGrid(ctx, w, h);
-    drawCircle(ctx, 880, 220, 280, hexToRgba(result.theme.color, 0.16));
+    drawCircle(ctx, 880, 220, 280, "rgba(255,255,255,.28)");
   }
 
   ctx.fillStyle = palette.muted;
@@ -2388,34 +2422,52 @@ function drawShareCanvas(result, template = "classic") {
 
   ctx.fillStyle = palette.fg;
   ctx.font = "950 190px system-ui, sans-serif";
-  ctx.fillText(String(result.score), 72, 600);
+  ctx.fillText(`${result.score}%`, 72, 600);
+  drawBatteryIcon(ctx, 72, 632, 196, 72, result.score, template === "xhs" ? "#1b1010" : scoreColor);
   ctx.fillStyle = palette.muted;
   ctx.font = "800 34px system-ui, sans-serif";
-  ctx.fillText("今日电量", 76, 648);
+  ctx.fillText("今日电量", 76, 744);
 
   ctx.fillStyle = palette.card;
-  roundRect(ctx, 72, 720, w - 144, 250, 32);
+  roundRect(ctx, 72, 800, w - 144, 230, 32);
   ctx.fill();
   ctx.fillStyle = palette.muted;
   ctx.font = "850 30px system-ui, sans-serif";
-  ctx.fillText("今天最耗你", 110, 780);
+  ctx.fillText("今天最耗你", 110, 860);
   ctx.fillStyle = palette.fg;
   ctx.font = "950 56px system-ui, sans-serif";
-  wrapText(ctx, result.cause, 110, 855, w - 220, 64, 2);
+  wrapText(ctx, result.cause, 110, 935, w - 220, 64, 2);
   ctx.fillStyle = palette.muted;
   ctx.font = "800 28px system-ui, sans-serif";
-  wrapText(ctx, `先做：${result.revive}`, 110, 940, w - 220, 40, 1);
+  wrapText(ctx, `先做：${result.revive}`, 110, 1010, w - 220, 40, 1);
 
   ctx.fillStyle = palette.fg;
   ctx.font = "900 42px system-ui, sans-serif";
-  wrapText(ctx, result.shareLine, 72, 1090, w - 320, 56, 3);
-  drawQrBox(ctx, w - 250, 1052, 178, palette.accent);
+  wrapText(ctx, result.shareLine, 72, 1140, w - 320, 56, 3);
+  drawQrBox(ctx, w - 250, 1102, 178, palette.accent);
 
   ctx.fillStyle = palette.muted;
   ctx.font = "750 25px system-ui, sans-serif";
   ctx.fillText(`${result.city}${result.persona} / ${buildDisplayLink()}`, 72, h - 62);
 
   return canvas;
+}
+
+function drawBatteryIcon(ctx, x, y, width, height, score, color) {
+  ctx.save();
+  ctx.lineWidth = 8;
+  ctx.strokeStyle = color;
+  ctx.fillStyle = "transparent";
+  roundRect(ctx, x, y, width, height, 18);
+  ctx.stroke();
+  roundRect(ctx, x + width + 8, y + height * 0.27, 18, height * 0.46, 8);
+  ctx.fillStyle = color;
+  ctx.fill();
+  const inset = 12;
+  const fillWidth = Math.max(10, (width - inset * 2) * clamp(score, 0, 100) / 100);
+  roundRect(ctx, x + inset, y + inset, fillWidth, height - inset * 2, 10);
+  ctx.fill();
+  ctx.restore();
 }
 
 function drawCanvasLogo(ctx, x, y, size) {
@@ -2596,20 +2648,18 @@ function buildIdentityShortLine(typeCode, coreName, suffixName, profile) {
 }
 
 function buildIdentityRelations(identity, entryTypeCode, seed) {
-  const relationCode = identity.internalCode || identity.typeCode;
-  const saviorCode = flipTypeCode(relationCode, ["energy", "social", "coping"]);
-  const drainCode = flipTypeCode(relationCode, ["trigger", "expression"]);
-  const collapseCode = `${relationCode.slice(0, 4)}${flipTypeCode(relationCode, ["coping"]).slice(4)}`;
-  const saviorName = buildIdentityNameFromCode(saviorCode);
+  const sameName = pick(["保温杯", "小风扇", "充电宝", "省电灯"], seed + 2);
+  const saviorName = pick(["小太阳", "稳压器", "发电机", "热水壶"], seed + 5);
+  const drainName = pick(["插线板", "闹钟", "路由器", "红电池"], seed + 9);
   return {
     free: {
-      title: `最能帮你回血：${saviorName.split("·")[0]}`,
-      copy: "对方偏互补，适合在你低电量时把话题接住。",
+      title: `谁能给你回血：${saviorName}`,
+      copy: `${saviorName}不一定能解决所有事，但能让你少耗一点。`,
     },
     locked: [
-      { label: "谁会消耗你", code: drainCode },
-      { label: "谁和你一起崩", code: collapseCode },
-      { label: "谁最能救场", code: flipTypeCode(relationCode, ["energy", "trigger", "social", "recovery", "control", "expression", "coping"]) },
+      { label: "谁最懂你", code: sameName },
+      { label: "谁会耗你", code: drainName },
+      { label: "今天怎么活", code: "一条回血建议" },
     ],
     entryTypeCode,
   };
@@ -2620,8 +2670,8 @@ function buildIdentityMatch(typeCode, entryTypeCode, seed) {
   const sameFamily = typeCode[0] === entryTypeCode[0];
   const sameNumber = typeCode.slice(1) === entryTypeCode.slice(1);
   const score = clamp(58 + (sameFamily ? 18 : 7) + (sameNumber ? 9 : 0) + (seed % 11), 42, 96);
-  const title = sameFamily ? "很像今天的彼此" : "一个低电一个救场";
-  const copy = `你是 ${typeCode}，对方是 ${entryTypeCode}。${sameFamily ? "你们今天很容易懂对方的累。" : "你们的状态不一样，反而能互相拉一把。"}`;
+  const title = sameFamily ? "今天有点同频" : "一个耗电一个回血";
+  const copy = `你是 ${typeCode}，对方是 ${entryTypeCode}。${sameFamily ? "你们今天容易懂彼此为什么累。" : "状态不一样，反而可能互相补一点电。"}`;
   return { score, title, copy };
 }
 
@@ -2725,19 +2775,19 @@ function buildResultSlices(profile, score, tier, seed, answers, identity) {
   const expressionMode = tier === "high" ? "可以小小得意" : tier === "mid" ? "适合认真自嘲" : "适合先别硬撑";
   return [
     {
-      label: "今日状态",
-      value: identity.coreName,
-      copy: `${identity.typeCode} 是今日编号，复制后可以和朋友对一下。`,
+      label: "今日编号",
+      value: identity.typeCode,
+      copy: "只是方便保存今天的结果，不需要理解成复杂标签。",
     },
     {
       label: "最耗你的事",
       value: weakest?.dimension || profile.theme.risk,
-      copy: weakest ? `今天最拖你后腿的是「${weakest.dimension}」，所以报告会重点吐槽它。` : "今天没有特别明显的短板，整体只是有点波动。",
+      copy: weakest ? `今天主要是「${weakest.dimension}」在耗你，所以先别硬扛。` : "今天没有特别明显的短板，整体只是有点波动。",
     },
     {
       label: "今日表达",
       value: expressionMode,
-      copy: strongest ? `最有梗的是「${strongest.dimension}」，这一句最像今天的你。` : `今日电量 ${score}/100，适合留作今天的状态说明。`,
+      copy: strongest ? `最能代表你的是「${strongest.dimension}」，所以嘴替句会围着它换。` : `今日电量 ${score}%，先轻一点。`,
     },
   ];
 }
@@ -2750,10 +2800,10 @@ function buildShareReasons(profile, score, tier, seed, identity) {
     low: "低电量结果很像一句不用解释的叹气。",
   };
   return [
-    { label: "今日状态", value: `${identity.coreName} ${identity.typeCode}` },
-    { label: "今日梗点", value: pick(content.signals, seed + 11) },
+    { label: "今天像什么", value: `${identity.typeName} ${identity.typeCode}` },
+    { label: "最耗你的事", value: pick(content.signals, seed + 11) },
     { label: "读起来像", value: reasonByTier[tier] },
-    { label: "还能对照", value: "复制编号后，可以和朋友对一下" },
+    { label: "编号作用", value: "复制后能保留今天这次状态" },
   ];
 }
 
@@ -2765,7 +2815,7 @@ function buildChallenge(profile, score, tier, seed, identity) {
   ];
   return {
     title: `今日编号：${identity.typeCode}`,
-    copy: `${profile.city}${profile.persona}今天的状态出炉了。${pick(endings, seed + 17)}`,
+    copy: `${profile.city}${profile.persona}今天像${identity.typeName}。${pick(endings, seed + 17)}`,
   };
 }
 
@@ -2815,10 +2865,8 @@ function buildPersonaTag(profile, tier, seed) {
 }
 
 function buildPremiumPeek(profile, seed, identity) {
-  const rescueCodes = ["HDOAPTA", "HMOSFTA", "HDORPTA", "HMORPNA"];
-  const rescue = pick(rescueCodes, seed + hash(identity?.typeCode || profile.themeId));
-  const rescueName = buildIdentityNameFromCode(rescue).split("·")[0];
-  return `完整版已生成：最可能帮你回血的是「${rescueName}」，最容易消耗你的类型解锁后可看。`;
+  const rescueName = pick(["小太阳", "稳压器", "发电机", "热水壶"], seed + hash(identity?.typeCode || profile.themeId));
+  return `隐藏内容会告诉你：谁最懂你的「${identity?.typeName || "今日状态"}」，谁能像${rescueName}一样帮你回血。`;
 }
 
 function drawGrid(ctx, w, h) {

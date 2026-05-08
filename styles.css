@@ -3354,6 +3354,105 @@ body {
   display: none;
 }
 
+.score-ring {
+  --score-color: var(--theme-color, var(--lime));
+  --battery-fill: 50%;
+  grid-template-rows: auto auto auto;
+  align-content: center;
+  gap: 6px;
+  background:
+    radial-gradient(circle, #15161a 55%, transparent 57%),
+    conic-gradient(var(--score-color) 0deg, var(--score-color) var(--score-deg), rgba(255, 255, 255, 0.12) var(--score-deg) 360deg);
+}
+
+.score-ring span {
+  color: #f8f4e8;
+  font-size: clamp(52px, 15vw, 68px);
+}
+
+.battery-icon {
+  position: relative;
+  width: 72px;
+  height: 30px;
+  display: block;
+  border: 3px solid var(--score-color);
+  border-radius: 8px;
+  overflow: visible;
+}
+
+.battery-icon::after {
+  content: "";
+  position: absolute;
+  right: -9px;
+  top: 8px;
+  width: 6px;
+  height: 12px;
+  border-radius: 0 4px 4px 0;
+  background: var(--score-color);
+}
+
+.battery-icon b {
+  position: absolute;
+  inset: 5px;
+  right: auto;
+  width: calc(var(--battery-fill, 50%) - 10px);
+  max-width: calc(100% - 10px);
+  min-width: 6px;
+  border-radius: 4px;
+  background: var(--score-color);
+}
+
+.report-card[data-score-tier="low"] {
+  --score-color: #ff5b4f;
+}
+
+.report-card[data-score-tier="mid"] {
+  --score-color: #ffd166;
+}
+
+.report-card[data-score-tier="high"] {
+  --score-color: #c7ff4f;
+}
+
+.report-card[data-score-tier="low"] .identity-code,
+.report-card[data-score-tier="low"] .risk-stamp {
+  border-color: rgba(255, 91, 79, 0.7);
+  color: #ff6b57;
+  background: rgba(255, 91, 79, 0.1);
+}
+
+.report-card[data-score-tier="mid"] .identity-code {
+  border-color: rgba(255, 209, 102, 0.62);
+  color: #ffd166;
+  background: rgba(255, 209, 102, 0.1);
+}
+
+.poster-studio.generated .poster-preview-shell {
+  display: none;
+}
+
+.poster-studio.generated .poster-output {
+  display: grid;
+}
+
+.template-switch .chip-button[data-option="classic"].active {
+  border-color: #f4efe2;
+  color: #111317;
+  background: #f4efe2;
+}
+
+.template-switch .chip-button[data-option="social"].active {
+  border-color: #ff8a72;
+  color: #17130f;
+  background: linear-gradient(135deg, #78c8ff, #ffd99b 52%, #ff8a72);
+}
+
+.template-switch .chip-button[data-option="xhs"].active {
+  border-color: #ff5b4f;
+  color: #fff7ef;
+  background: #ff5b4f;
+}
+
 .desktop-rail .rail-grid,
 .desktop-rail .rail-type-board,
 .desktop-rail .rail-live-feed,

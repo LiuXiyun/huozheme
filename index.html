@@ -38,8 +38,8 @@
 
           <form class="setup-form" id="setupForm">
             <div class="theme-field">
-              <span class="field-label">选择场景</span>
-              <div class="theme-grid" id="themeGrid" role="radiogroup" aria-label="选择场景"></div>
+              <span class="field-label">选择身份</span>
+              <div class="theme-grid" id="themeGrid" role="radiogroup" aria-label="选择身份"></div>
             </div>
 
             <label class="field">
@@ -186,14 +186,15 @@
                 <strong id="identityRarity">--</strong>
               </div>
               <div>
-                <span>今日同类人数</span>
+                <span>今天还有多少个你</span>
                 <strong id="identityTwins">--</strong>
               </div>
             </div>
           </div>
           <div class="score-row">
             <div class="score-ring" id="scoreRing">
-              <span id="scoreValue">0</span>
+              <i class="battery-icon" aria-hidden="true"><b id="batteryFill"></b></i>
+              <span id="scoreValue">0%</span>
               <small>今日电量</small>
             </div>
             <div class="risk-stamp" id="riskStamp"></div>
@@ -246,7 +247,7 @@
           </div>
           <div class="relation-preview" id="relationPreview"></div>
           <div class="insight-stack" id="shareReasons" aria-label="结果亮点"></div>
-          <div class="poster-studio">
+          <div class="poster-studio" id="posterStudio">
             <div class="studio-head">
               <div>
               <span>状态卡片</span>
@@ -258,7 +259,7 @@
             </div>
             <div class="poster-output hidden" id="posterOutput">
               <img id="posterImage" alt="已生成的状态卡" />
-              <span>长按图片可保存，复制文案会带上今日状态。</span>
+              <span>这一张就是今天的状态卡。</span>
             </div>
             <div class="template-switch" id="templateSwitch" aria-label="状态卡模板"></div>
             <div class="tone-switch" id="toneSwitch" aria-label="毒舌强度"></div>
@@ -271,37 +272,37 @@
           <div class="challenge-card" id="challengeCard"></div>
           <div class="premium-card">
             <div>
-              <span>隐藏关系</span>
-              <strong>看完整关系图</strong>
-              <p>谁能救你、谁会消耗你、谁会和你一起低电量。</p>
+              <span>隐藏内容</span>
+              <strong>看今天怎么回血</strong>
+              <p>谁最懂你、谁能救你、今天先怎么活。</p>
             </div>
             <div class="premium-value-grid">
               <div>
-                <span>关系卡</span>
-                <strong>4 张关系卡</strong>
+                <span>谁最懂你</span>
+                <strong>哪类人和你同频</strong>
               </div>
               <div>
-                <span>同型画像</span>
-                <strong>与你同型的状态</strong>
+                <span>谁能救你</span>
+                <strong>哪类人能帮你回血</strong>
               </div>
               <div>
-                <span>嘴替文案</span>
-                <strong>3 种语气可切换</strong>
+                <span>今天怎么活</span>
+                <strong>一条具体回血建议</strong>
               </div>
               <div>
-                <span>互补类型</span>
-                <strong>谁最能帮你回血</strong>
+                <span>多换几句</span>
+                <strong>更像你的嘴替文案</strong>
               </div>
             </div>
             <div class="premium-peek">
-              <span>已生成隐藏内容</span>
-              <strong id="premiumPeekText">你最适合被高亮行动派从通知里捞出来。</strong>
+              <span>先偷看一眼</span>
+              <strong id="premiumPeekText">谁最懂你的低电状态，谁能帮你回血。</strong>
             </div>
             <div class="premium-proof">
               <span id="premiumCount">--</span>
-              <strong>今日想看完整版</strong>
+              <strong>今天想看隐藏版</strong>
             </div>
-            <button id="premiumBtn" type="button">9.9 看完整关系</button>
+            <button id="premiumBtn" type="button">9.9 看隐藏内容</button>
           </div>
           <div class="return-card">
             <span>明日刷新</span>
@@ -339,26 +340,26 @@
         <div class="modal-card">
           <button class="modal-close" id="closePremiumBtn" type="button" aria-label="关闭">×</button>
           <span class="modal-kicker">9.9 内测价</span>
-          <h2 id="premiumTitle">看完整关系图</h2>
-          <p>解锁谁最适合救你、谁最容易消耗你，以及不同状态之间的隐藏匹配解释。锁定后保留今日内测价。</p>
+          <h2 id="premiumTitle">看隐藏内容</h2>
+          <p>解锁谁最懂你、谁能帮你回血，以及今天先做哪件小事。锁定后保留今日内测价。</p>
           <div class="premium-preview-grid">
             <div>
-              <span>关系卡</span>
-              <strong>4 张</strong>
+              <span>谁最懂你</span>
+              <strong>同频类型</strong>
             </div>
             <div>
-              <span>同型画像</span>
-              <strong>1 份</strong>
+              <span>谁能救你</span>
+              <strong>回血类型</strong>
             </div>
             <div>
-              <span>嘴替文案</span>
-              <strong>3 条</strong>
+              <span>多换几句</span>
+              <strong>嘴替文案</strong>
             </div>
           </div>
           <div class="unlock-list">
-            <span>谁能救你</span>
-            <span>谁会耗你</span>
-            <span>谁和你一起崩</span>
+            <span>谁懂你</span>
+            <span>谁救你</span>
+            <span>怎么回血</span>
           </div>
           <div class="modal-actions">
             <button class="primary-action" id="reservePremiumBtn" type="button">锁定 9.9 内测价</button>
