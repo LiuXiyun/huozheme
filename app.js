@@ -1911,7 +1911,7 @@ function renderMatch(result) {
   }
   root.classList.remove("hidden");
   root.innerHTML = `
-    <span>和朋友对一下</span>
+    <span>编号对照</span>
     <strong>${result.match.score}% / ${result.match.title}</strong>
     <p>${result.match.copy}</p>
   `;
@@ -2687,11 +2687,10 @@ function flipTypeCode(typeCode, axisKeys) {
 }
 
 function buildIdentityNameFromCode(typeCode) {
-  const simple = Object.values(simpleStatusTypes)
-    .flat()
-    .find((item) => item.code === typeCode);
+  const allTypes = Object.values(simpleStatusTypes).flat();
+  const simple = allTypes.find((item) => item.code === typeCode);
   if (simple) return simple.name;
-  return `${identityCoreNames[typeCode.slice(0, 4)] || "低亮漂流型"}·${identitySuffixNames[typeCode.slice(4)] || "今日漂流观察人"}`;
+  return pick(allTypes, hash(typeCode || "fallback")).name;
 }
 
 function renderIdentityCodeProgress(question) {
@@ -2720,9 +2719,9 @@ function renderEntryChallenge() {
   document.body.classList.add("has-entry-challenge");
   root.classList.remove("hidden");
   root.innerHTML = `
-    <span>来自朋友的状态编号</span>
+    <span>来自上一张状态卡</span>
     <strong>${state.entryTypeCode}</strong>
-    <p>TA 今天是 ${buildIdentityNameFromCode(state.entryTypeCode)}。测完可以对一下今天谁更低电。</p>
+    <p>对方今天像${buildIdentityNameFromCode(state.entryTypeCode)}。测完可以看看你们是不是同频。</p>
   `;
 }
 
@@ -2732,21 +2731,25 @@ function buildHotTypeCode() {
 }
 
 function buildRailHotTypes(seed) {
-  const codes = ["D1", "C1", "R1", "B1", "A1", "Y1"];
-  return codes.slice(0, 4).map((code, index) => ({
-    code,
-    name: buildIdentityNameFromCode(code).split("·")[0],
-    count: 18 + ((seed + index * 17) % 86),
-  }));
+  const samples = Object.values(simpleStatusTypes).flat();
+  return [0, 1, 2, 3].map((_, index) => {
+    const item = pick(samples, seed + index * 17);
+    return {
+      code: item.code,
+      name: item.name,
+      count: 18 + ((seed + index * 17) % 86),
+    };
+  });
 }
 
 function buildRailLiveLines(theme, city, seed) {
   const minutes = [2, 5, 8, 12];
+  const hotTypes = [0, 1].map((index) => pick(Object.values(simpleStatusTypes).flat(), seed + index * 13).name);
   const lines = [
-    `${city}${theme.label}常见状态：「低亮营业重启型」`,
+    `${city}${theme.label}常见状态：${hotTypes.join("、")}`,
     `今日状态卡更偏低电量风格`,
     `${theme.label}今日最常见耗电点：${pick(theme.causes, seed + 3)}`,
-    `和朋友对一下，看看谁更低电`,
+    `复制编号，留住今天这次状态`,
   ];
   return lines.map((text, index) => ({
     time: `${minutes[index]} 分钟前`,
@@ -2756,13 +2759,13 @@ function buildRailLiveLines(theme, city, seed) {
 
 function normalizeTypeCode(value) {
   const raw = String(value || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
-  const simple = Object.values(simpleStatusTypes)
-    .flat()
-    .some((item) => item.code === raw);
+  const allTypes = Object.values(simpleStatusTypes).flat();
+  const simple = allTypes.some((item) => item.code === raw);
   if (simple) return raw;
   const text = raw.replace(/[^A-Z]/g, "");
   if (text.length !== 7) return "";
-  return identityAxes.every((axis, index) => axis.letters.includes(text[index])) ? text : "";
+  if (!identityAxes.every((axis, index) => axis.letters.includes(text[index]))) return "";
+  return pick(allTypes, hash(text)).code;
 }
 
 function sanitizeParam(value) {
